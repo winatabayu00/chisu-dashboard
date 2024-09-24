@@ -8,6 +8,7 @@ use App\Enums\Service;
 use App\Enums\Target;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Winata\Core\Response\Http\Response;
 
 class SelectOptionController extends Controller
@@ -113,7 +114,12 @@ class SelectOptionController extends Controller
      */
     public function getServices(Request $request): Response
     {
-        $data = collect(Service::cases())->map(function (Service $item){
+        $validated = $request->validate([
+            'target' => ['nullable', Rule::in(Target::options())]
+        ]);
+
+        $serviceTargets = !empty($validated['target']) ? Target::tryFrom($validated['target'])->serviceLists() : [];
+        $data = collect($serviceTargets)->map(function (Service $item){
             return [
                 'id' => $item->value,
                 'name' => $item->label(),
