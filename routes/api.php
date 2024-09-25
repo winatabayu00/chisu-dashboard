@@ -15,3 +15,12 @@ Route::group([
     Route::get('targets', [SelectOptionController::class, 'getTargets']);
     Route::get('services', [SelectOptionController::class, 'getServices']);
 });
+
+Route::group([
+    'prefix' => 'data',
+    'as' => 'data',
+], function () {
+    Route::get('peoples', [\App\Http\Controllers\Api\MainController::class, 'summaryPeoples']);
+    Route::get('sasaran-terlayani', [\App\Http\Controllers\Api\MainController::class, 'sasaranTerlayani']);
+    Route::get('sasaran-puskesmas-terlayani', [\App\Http\Controllers\Api\MainController::class, 'sasaranPuskesmasTerlayani']);
+});
