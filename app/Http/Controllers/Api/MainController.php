@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Winata\Core\Response\Http\Response;
 
@@ -26,9 +27,10 @@ class MainController extends Controller
     }
 
     /**
+     * @param Request $request
      * @return Response
      */
-    public function sasaranTerlayani(): \Winata\Core\Response\Http\Response
+    public function sasaranTerlayani(Request $request): \Winata\Core\Response\Http\Response
     {
         $year = 2023; // Ganti dengan tahun yang diinginkan
 

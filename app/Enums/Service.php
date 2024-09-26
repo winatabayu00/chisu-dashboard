@@ -8,7 +8,7 @@ enum Service: string
 {
     case KUNJUNGAN_ANC_6 = 'KUNJUNGAN_ANC_6';
     case PERSALINAN_DI_FASILITAS_KESEHATAN = 'persalinan_di_fasilitas_kesehatan';
-    case KUNJUNGAN_NIFAS_LENGKAP = 'kunjungan_nifas_lengka[';
+    case KUNJUNGAN_NIFAS_LENGKAP = 'kunjungan_nifas_lengkap';
     case KUNJUNGAN_NEONATAL_LENGKAP = 'kunjungan_neonatal_lengkap';
     case SKRINING_HIPOTIROID_KONGENITAL = 'skrining_hipotiroid_kongenial';
     case ASI_EKSKLUSIF = 'asi_ekslusif';
