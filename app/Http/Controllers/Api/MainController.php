@@ -67,12 +67,12 @@ class MainController extends Controller
     WHERE 1=1
 ";
 
-// Menambahkan kondisi untuk startDate jika ada
+
         if (!is_null($startDate)) {
             $query .= " AND \"$tableColumn\" >= :start_date";
         }
 
-// Menambahkan kondisi untuk endDate jika ada
+
         if (!is_null($endDate)) {
             $query .= " AND \"$tableColumn\" <= :end_date";
         }
@@ -82,7 +82,7 @@ class MainController extends Controller
         month
 ";
 
-// Parameter binding
+
         $params = [];
 
         if (!is_null($startDate)) {
@@ -108,7 +108,7 @@ class MainController extends Controller
      */
     public function sasaranPuskesmasTerlayani(DefaultRequest $request): \Winata\Core\Response\Http\Response
     {
-        $year = 2023; // Ganti dengan tahun yang diinginkan
+        $year = 2023;
 
         $results = DB::select("
     SELECT
