@@ -54,7 +54,6 @@ class MainController extends Controller
     SELECT
         COUNT(\"$tableColumn\") AS count_anc,
 ";
-
         if ($columnType == 'character varying') {
             $query .= "DATE_TRUNC('month', TO_DATE(\"$tableColumn\", 'YYYY-MM-DD')) AS month ";
         } else {
@@ -67,32 +66,24 @@ class MainController extends Controller
     WHERE 1=1
 ";
 
-
         if (!is_null($startDate)) {
             $query .= " AND \"$tableColumn\" >= :start_date";
         }
-
-
         if (!is_null($endDate)) {
             $query .= " AND \"$tableColumn\" <= :end_date";
         }
-
         $query .= "
     GROUP BY
         month
 ";
 
-
         $params = [];
-
         if (!is_null($startDate)) {
             $params['start_date'] = $startDate;
         }
-
         if (!is_null($endDate)) {
             $params['end_date'] = $endDate;
         }
-
         $results = DB::select($query, $params);
 
         return $this->response(collect($results)->map(function ($item) {
