@@ -2,8 +2,11 @@
 
 namespace App\Enums;
 
+use ArchTech\Enums\Options;
+
 enum Gender: string
 {
+    use Options;
     case MALE = 'male';
     case FEMALE = 'female';
 

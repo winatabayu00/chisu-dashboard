@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use ArchTech\Enums\Options;
 use Illuminate\Support\Str;
 
 enum Service: string
 {
+    use Options;
+
     case KUNJUNGAN_ANC_6 = 'KUNJUNGAN_ANC_6';
     case PERSALINAN_DI_FASILITAS_KESEHATAN = 'persalinan_di_fasilitas_kesehatan';
     case KUNJUNGAN_NIFAS_LENGKAP = 'kunjungan_nifas_lengkap';
@@ -21,10 +24,26 @@ enum Service: string
     case SKRINING_ANEMIA = 'skrining_anemia';
     case KONSUMSI_TABLET_TABAH_DARAH = 'konsumsi_tablet_tabel_darah';
 
+    /**
+     * @return array
+     */
+    public static function allowMonthlyGrouping(): array
+    {
+        return [
+            self::KUNJUNGAN_ANC_6->value,
+            self::PERSALINAN_DI_FASILITAS_KESEHATAN->value,
+            self::KUNJUNGAN_NIFAS_LENGKAP->value,
+            self::SKRINING_HIPOTIROID_KONGENITAL->value,
+            self::ASI_EKSKLUSIF->value,
+            self::IMUNISASI_DASAR_LENGKAP->value,
+            self::IMUNISASI_LANJUTAN_BADUTA_LENGKAP->value,
+        ];
+    }
+
     public function tableMaps()
     {
-        return match ($this){
-            self::KUNJUNGAN_ANC_6 => 'fbEkohortAnc', // K6
+        return match ($this) {
+            self::KUNJUNGAN_ANC_6 => 'dbEkohortAnc', // K6
             self::PERSALINAN_DI_FASILITAS_KESEHATAN => 'dbEkohortPersalinan',
             self::KUNJUNGAN_NIFAS_LENGKAP => 'dbEkohortPnc',
             self::KUNJUNGAN_NEONATAL_LENGKAP => null,
@@ -48,12 +67,12 @@ enum Service: string
 
     public function dateColumn()
     {
-        return match ($this){
-            self::KUNJUNGAN_ANC_6 => 'Tanggal anc', // K6
+        return match ($this) {
+            self::KUNJUNGAN_ANC_6 => 'Tanggal Anc', // K6
             self::PERSALINAN_DI_FASILITAS_KESEHATAN => 'Tgl Persalinan',
             self::KUNJUNGAN_NIFAS_LENGKAP => 'Tanggal Pnc',
             self::SKRINING_HIPOTIROID_KONGENITAL => 'TANGGAL DAN JAM PENGAMBILAN SPESIMEN',
-            self::ASI_EKSKLUSIF => 'dbasi',// 6 bulan sejak bayi lahir
+            self::ASI_EKSKLUSIF => null,// 6 bulan sejak bayi lahir
             self::IMUNISASI_DASAR_LENGKAP => 'waktu',
             self::IMUNISASI_LANJUTAN_BADUTA_LENGKAP => 'waktu',
             self::KUNJUNGAN_NEONATAL_LENGKAP => null,
