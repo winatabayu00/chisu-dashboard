@@ -28,7 +28,7 @@ class DefaultRequest extends FormRequest
         return [
             'region' => ['nullable', 'string'],
             'period' => ['nullable', 'array'],
-            'period.type' => ['nullable', 'string', 'in:weekly,monthly'],
+            'period.type' => ['nullable', 'string', 'in:weekly,monthly,yearly'],
             'period.start' => ['nullable', 'date'],
             'period.end' => ['nullable', 'date'],
             'aggregate' => ['nullable', 'in:absolute,cumulative,percentage'],

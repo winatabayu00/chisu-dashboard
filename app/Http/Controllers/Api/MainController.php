@@ -6,7 +6,6 @@ use App\Enums\Service;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DefaultRequest;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Winata\Core\Response\Http\Response;
 
@@ -34,17 +33,16 @@ class MainController extends Controller
      */
     public function sasaranTerlayani(DefaultRequest $request): \Winata\Core\Response\Http\Response
     {
-        $service = Service::IMUNISASI_LANJUTAN_BADUTA_LENGKAP;
+        $service = Service::tryFrom($request->input('indicator', Service::KUNJUNGAN_ANC_6));
         $tableName = $service->tableMaps();
         $tableColumn = $service->dateColumn();
-        $startDate = $request->input('period.start');
-        $endDate = $request->input('period.end');
+        $startDate = $request->input('period.starts');
+        $endDate = $request->input('period.ends');
 
         $columnType = DB::selectOne("
     SELECT data_type
     FROM information_schema.columns
     WHERE table_name = :table_name AND column_name = :column_name
-    ORDER BY :column_name DESC
 ", [
             'table_name' => $tableName,
             'column_name' => $tableColumn
@@ -55,7 +53,7 @@ class MainController extends Controller
         COUNT(\"$tableColumn\") AS count_anc,
 ";
         if ($columnType == 'character varying') {
-            $query .= "DATE_TRUNC('month', TO_DATE(\"$tableColumn\", 'YYYY-MM-DD')) AS month ";
+            $query .= "TO_DATE(\"$tableColumn\", 'YYYY-MM') AS month ";
         } else {
             $query .= "DATE_TRUNC('month', \"$tableColumn\") AS month ";
         }
@@ -75,6 +73,8 @@ class MainController extends Controller
         $query .= "
     GROUP BY
         month
+    ORDER BY
+        month ASC
 ";
 
         $params = [];
@@ -84,17 +84,24 @@ class MainController extends Controller
         if (!is_null($endDate)) {
             $params['end_date'] = $endDate;
         }
+
+        /**
+         * "     SELECT COUNT(\"Tgl Persalinan\") AS count_anc, DATE_TRUNC('month', TO_DATE(\"Tgl Persalinan\", 'YYYY-MM-DD')) AS month      FROM         \"dbEkohortPersalinan\"     WHERE 1=1     GROUP BY         month "
+         * */
+
         $results = DB::select($query, $params);
 
         return $this->response(collect($results)->map(function ($item) {
             return [
                 'count' => $item->count_anc,
+                'date' => $item->month,
                 'month' => Carbon::parse($item->month)->format('F'),
             ];
         }));
     }
 
     /**
+     * @param DefaultRequest $request
      * @return Response
      */
     public function sasaranPuskesmasTerlayani(DefaultRequest $request): \Winata\Core\Response\Http\Response

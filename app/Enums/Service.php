@@ -33,8 +33,6 @@ enum Service: string
             self::KUNJUNGAN_ANC_6->value,
             self::PERSALINAN_DI_FASILITAS_KESEHATAN->value,
             self::KUNJUNGAN_NIFAS_LENGKAP->value,
-            self::SKRINING_HIPOTIROID_KONGENITAL->value,
-            self::ASI_EKSKLUSIF->value,
             self::IMUNISASI_DASAR_LENGKAP->value,
             self::IMUNISASI_LANJUTAN_BADUTA_LENGKAP->value,
         ];
@@ -71,10 +69,10 @@ enum Service: string
             self::KUNJUNGAN_ANC_6 => 'Tanggal Anc', // K6
             self::PERSALINAN_DI_FASILITAS_KESEHATAN => 'Tgl Persalinan',
             self::KUNJUNGAN_NIFAS_LENGKAP => 'Tanggal Pnc',
-            self::SKRINING_HIPOTIROID_KONGENITAL => 'TANGGAL DAN JAM PENGAMBILAN SPESIMEN',
-            self::ASI_EKSKLUSIF => null,// 6 bulan sejak bayi lahir
             self::IMUNISASI_DASAR_LENGKAP => 'waktu',
             self::IMUNISASI_LANJUTAN_BADUTA_LENGKAP => 'waktu',
+            self::SKRINING_HIPOTIROID_KONGENITAL => null, //'TANGGAL DAN JAM PENGAMBILAN SPESIMEN',
+            self::ASI_EKSKLUSIF => null,// 6 bulan sejak bayi lahir
             self::KUNJUNGAN_NEONATAL_LENGKAP => null,
             self::PEMBERIAN_VITAMIN_A => null,
             self::LAYANAN_TUMBUH_KEMBANG => null,
