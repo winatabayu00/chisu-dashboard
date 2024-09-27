@@ -132,13 +132,10 @@ GROUP BY "Nama Lembaga";');
 
         $serviceTargets = !empty($validated['target']) ? Target::tryFrom($validated['target'])->serviceLists() : [];
         $data = collect($serviceTargets)->map(function (Service $item) {
-            if (in_array($item->value, Service::allowMonthlyGrouping())){
-                return [
-                    'id' => $item->value,
-                    'name' => $item->label(),
-                ];
-            }
-            return null;
+            return [
+                'id' => $item->value,
+                'name' => $item->label(),
+            ];
         });
 
         return $this->response($data);

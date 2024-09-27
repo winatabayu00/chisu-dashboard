@@ -38,7 +38,10 @@ enum Service: string
         ];
     }
 
-    public function tableMaps()
+    /**
+     * @return string|null
+     */
+    public function tableMaps(): ?string
     {
         return match ($this) {
             self::KUNJUNGAN_ANC_6 => 'dbEkohortAnc', // K6
@@ -53,7 +56,7 @@ enum Service: string
             self::LAYANAN_TUMBUH_KEMBANG => null,
             self::IMUNISASI_LANJUTAN_LENGKAP => 'dbbias',
             self::SKRINING_KESEHATAN => 'fbpd',
-            self::SKRINING_ANEMIA => 'fbEkohortAnc', //soon
+            self::SKRINING_ANEMIA => 'dbEkohortAnc', //soon
             self::KONSUMSI_TABLET_TABAH_DARAH => null,
         };
     }
@@ -79,6 +82,30 @@ enum Service: string
             self::IMUNISASI_LANJUTAN_LENGKAP => null,
             self::SKRINING_KESEHATAN => null,
             self::SKRINING_ANEMIA => null, //soon
+            self::KONSUMSI_TABLET_TABAH_DARAH => null,
+
+        };
+    }
+
+    /**
+     * @return string|null
+     */
+    public function namaLembaga(): ?string
+    {
+        return match ($this) {
+            self::KUNJUNGAN_ANC_6 => 'Nama Lembaga', // K6
+            self::PERSALINAN_DI_FASILITAS_KESEHATAN => 'Nama Lembaga Kesehatan',
+            self::KUNJUNGAN_NEONATAL_LENGKAP => null,
+            self::KUNJUNGAN_NIFAS_LENGKAP => 'Nama Lembaga Kesehatan',
+            self::SKRINING_HIPOTIROID_KONGENITAL => 'NAMA FASYANKES',
+            self::ASI_EKSKLUSIF => 'Pukesmas',
+            self::IMUNISASI_DASAR_LENGKAP => null,
+            self::IMUNISASI_LANJUTAN_BADUTA_LENGKAP => null,
+            self::PEMBERIAN_VITAMIN_A => 'Pukesmas',
+            self::LAYANAN_TUMBUH_KEMBANG => null,
+            self::IMUNISASI_LANJUTAN_LENGKAP => 'Pukesmas',
+            self::SKRINING_KESEHATAN => 'puskesmas',
+            self::SKRINING_ANEMIA => 'Nama Lembaga', //soon
             self::KONSUMSI_TABLET_TABAH_DARAH => null,
 
         };

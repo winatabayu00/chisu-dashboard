@@ -34,7 +34,7 @@ class DefaultRequest extends FormRequest
             'aggregate' => ['nullable', 'in:absolute,cumulative,percentage'],
             'gender' => ['nullable', Rule::in(Gender::options())],
             'target' => ['nullable', Rule::in(Target::options())],
-            'indicator' => ['nullable', Rule::in(Service::allowMonthlyGrouping())],
+            'indicator' => ['nullable', Rule::in(Service::options())],
         ];
     }
 }

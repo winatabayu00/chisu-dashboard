@@ -33,7 +33,7 @@ class MainController extends Controller
      */
     public function sasaranTerlayani(DefaultRequest $request): \Winata\Core\Response\Http\Response
     {
-        $service = Service::tryFrom($request->input('indicator', Service::KUNJUNGAN_ANC_6));
+        $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::KUNJUNGAN_ANC_6->value;
         $tableName = $service->tableMaps();
         $tableColumn = $service->dateColumn();
         $startDate = $request->input('period.starts');
@@ -91,13 +91,26 @@ class MainController extends Controller
 
         $results = DB::select($query, $params);
 
-        return $this->response(collect($results)->map(function ($item) {
-            return [
-                'count' => $item->count_anc,
-                'date' => $item->month,
-                'month' => Carbon::parse($item->month)->format('F'),
+        if ($request->input('aggregate') == 'absolute'){
+            return $this->response(collect($results)->map(function ($item) {
+                return [
+                    'count' => $item->count_anc,
+                    'name' => Carbon::parse($item->month)->format('F'),
+                ];
+            }));
+        }
+
+        $data = [];
+        $count = 0;
+        foreach (collect($results) as $item){
+            $count = $count + $item->count_anc;
+            $data[] = [
+                'count' => $count,
+                'name' => Carbon::parse($item->month)->format('F'),
             ];
-        }));
+        }
+
+        return $this->response($data);
     }
 
     /**
@@ -106,24 +119,28 @@ class MainController extends Controller
      */
     public function sasaranPuskesmasTerlayani(DefaultRequest $request): \Winata\Core\Response\Http\Response
     {
-        $year = 2023;
+        $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::KUNJUNGAN_ANC_6->value;
+        $tableName = $service->tableMaps();
+        $tableColumn = $service->namaLembaga();
+        $startDate = $request->input('period.starts');
+        $endDate = $request->input('period.ends');
 
         $results = DB::select("
     SELECT
-        \"Nama Lembaga\" as name,
-        COUNT(\"Nama Lembaga\") AS count_anc
+        \"$tableColumn\" as name,
+        COUNT(\"$tableColumn\") AS total
     FROM
-        \"dbEkohortAnc\"
+        \"$tableName\"
     WHERE
-        EXTRACT(YEAR FROM TO_DATE(\"Tanggal Anc\", 'YYYY-MM-DD')) = ?
+        \"$tableColumn\" is not null
     GROUP BY
-        \"Nama Lembaga\"
+        \"$tableColumn\"
     ORDER BY
-        count_anc ASC
-", [$year]);
+        \"$tableColumn\" ASC
+");
         return $this->response(collect($results)->map(function ($item) {
             return [
-                'count' => $item->count_anc,
+                'count' => $item->total,
                 'name' => $item->name,
             ];
         }));
