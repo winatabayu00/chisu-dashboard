@@ -23,4 +23,5 @@ Route::group([
     Route::get('peoples', [\App\Http\Controllers\Api\MainController::class, 'summaryPeoples']);
     Route::get('sasaran-terlayani', [\App\Http\Controllers\Api\MainController::class, 'sasaranTerlayani']);
     Route::get('sasaran-puskesmas-terlayani', [\App\Http\Controllers\Api\MainController::class, 'sasaranPuskesmasTerlayani']);
+    Route::get('morbiditas', [\App\Http\Controllers\Api\MainController::class, 'morbiditas']);
 });

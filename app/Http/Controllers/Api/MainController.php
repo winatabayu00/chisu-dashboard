@@ -36,8 +36,8 @@ class MainController extends Controller
         $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::KUNJUNGAN_ANC_6->value;
         $tableName = $service->tableMaps();
         $tableColumn = $service->dateColumn();
-        $startDate = $request->input('period.starts');
-        $endDate = $request->input('period.ends');
+        $startDate = $request->input('period.start');
+        $endDate = $request->input('period.end');
 
         $columnType = DB::selectOne("
     SELECT data_type
@@ -122,8 +122,8 @@ class MainController extends Controller
         $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::KUNJUNGAN_ANC_6->value;
         $tableName = $service->tableMaps();
         $tableColumn = $service->namaLembaga();
-        $startDate = $request->input('period.starts');
-        $endDate = $request->input('period.ends');
+        $startDate = $request->input('period.start');
+        $endDate = $request->input('period.end');
 
         $results = DB::select("
     SELECT
@@ -138,6 +138,25 @@ class MainController extends Controller
     ORDER BY
         \"$tableColumn\" ASC
 ");
+        return $this->response(collect($results)->map(function ($item) {
+            return [
+                'count' => $item->total,
+                'name' => $item->name,
+            ];
+        }));
+    }
+
+    /**
+     * @param DefaultRequest $request
+     * @return Response
+     */
+    public function morbiditas(DefaultRequest $request): \Winata\Core\Response\Http\Response
+    {
+        $results = DB::select("SELECT
+    nm_diagnosa as name,
+    COUNT(nm_diagnosa) as total
+FROM nd_diagnosa_ilp
+GROUP BY nm_diagnosa");
         return $this->response(collect($results)->map(function ($item) {
             return [
                 'count' => $item->total,
