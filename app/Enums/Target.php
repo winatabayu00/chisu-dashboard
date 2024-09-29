@@ -19,6 +19,37 @@ enum Target: string
     case ANAK_USIA_SEKOLAH = 'anak_usia_sekolah';
     case REMAJA_PUTRI = 'usia_dewasa';
 
+    public function totalKunjungan(): int
+    {
+        return match ($this){
+            self::IBU_HAMIL => 1000,
+            self::IBU_BERSALIN => 1000,
+            self::BAYI_BARU_LAHIR => 1000,
+            self::BAYI_DIBAWAH_6_BULAN => 1000,
+            self::BAYI => 1000,
+            self::ANAK_USIA_12_SAMPAI_23_BULAN => 1000,
+            self::BALITA => 1000,
+            self::ANAK_USIA_SEKOLAH => 1000,
+            self::REMAJA_PUTRI => 1000,
+
+        };
+    }
+
+    public function jumlahPenduduk(): int
+    {
+        return match ($this){
+            self::IBU_HAMIL => 1984,
+            self::IBU_BERSALIN => 1973,
+            self::BAYI_BARU_LAHIR => 1856,
+            self::BAYI_DIBAWAH_6_BULAN, self::BAYI => 1897,
+            self::ANAK_USIA_12_SAMPAI_23_BULAN => 1000,
+            self::BALITA => 9673,
+            self::ANAK_USIA_SEKOLAH => 18741,
+            self::REMAJA_PUTRI => 3773,
+
+        };
+    }
+
     /**
      * @return array|Collection
      */

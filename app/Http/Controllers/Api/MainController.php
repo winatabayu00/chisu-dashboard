@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\Service;
+use App\Enums\Target;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DefaultRequest;
 use Carbon\Carbon;
@@ -24,6 +25,44 @@ class MainController extends Controller
                 'male' => 65303,
                 'female' => 67541,
             ]
+        ]);
+    }
+
+    /**
+     * @return Response
+     */
+    public function listKunjungan(): Response
+    {
+        $data = [];
+        $target = Target::cases();
+        foreach ($target as $data) {
+            $data[] = [
+                'name' => $data->name,
+                'people_count' => $data->jumlahPenduduk(),
+                'service_count' => $data->totalKunjungan(),
+            ];
+        }
+        return $this->response($data);
+    }
+
+    /**
+     * @return Response
+     */
+    public function summaryKunjungan(): Response
+    {
+        $target = Target::cases();
+        $totalSasaran = 0;
+        $totalSasaranTerlayani = 0;
+        $totalSasaranKunjungan = 0;
+        foreach ($target as $data) {
+            $totalSasaran = $totalSasaran + 1;
+            $totalSasaranTerlayani = $totalSasaranTerlayani + $data->totalKunjungan();
+            $totalSasaranKunjungan = $totalSasaranKunjungan + $data->totalKunjungan();
+        }
+        return $this->response([
+            'total_sasaran' => $totalSasaran,
+            'total_sasaran_terlayani' => $totalSasaranTerlayani,
+            'total_sasaran_kunjungan' => $totalSasaranKunjungan,
         ]);
     }
 
