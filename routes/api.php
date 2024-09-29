@@ -20,6 +20,8 @@ Route::group([
     'prefix' => 'data',
     'as' => 'data',
 ], function () {
+    Route::get('list-kunjungan', [\App\Http\Controllers\Api\MainController::class, 'listKunjungan']);
+    Route::get('summary-kunjungan', [\App\Http\Controllers\Api\MainController::class, 'summaryKunjungan']);
     Route::get('peoples', [\App\Http\Controllers\Api\MainController::class, 'summaryPeoples']);
     Route::get('sasaran-terlayani', [\App\Http\Controllers\Api\MainController::class, 'sasaranTerlayani']);
     Route::get('sasaran-puskesmas-terlayani', [\App\Http\Controllers\Api\MainController::class, 'sasaranPuskesmasTerlayani']);
