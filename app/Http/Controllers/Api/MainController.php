@@ -38,9 +38,24 @@ class MainController extends Controller
             return $this->response();
         }
         $tableName = $service->tableMaps();
+        $subDistrictColumn = $service->subDistrictColumn();
         $tableColumn = $service->dateColumn();
         $startDate = $request->input('period.start');
         $endDate = $request->input('period.end');
+        $periodType = !empty($request->input('period.type')) ? $request->input('period.type') : 'monthly';
+
+        if (in_array($subDistrictColumn, ['Puskesmas', 'NAMA FASYANKES'])) {
+            $healthcare = $request->input('region.healthcare');
+            if (!empty($healthcare)) {
+                $subDistricts = [$healthcare];
+            }else {
+                $subDistricts = [];
+            }
+        }elseif (!empty($subDistrictColumn)) {
+            $subDistricts = $service->subDistricts($request->input('region.district'), $request->input('region.subdistrict'), $request->input('region.healthcare'));
+        }else {
+            $subDistricts = [];
+        }
 
         $columnType = DB::selectOne("
     SELECT data_type
@@ -55,10 +70,20 @@ class MainController extends Controller
     SELECT
         COUNT(\"$tableColumn\") AS count_anc,
 ";
-        if ($columnType == 'character varying') {
-            $query .= "TO_DATE(\"$tableColumn\", 'YYYY-MM') AS month ";
-        } else {
-            $query .= "DATE_TRUNC('month', \"$tableColumn\") AS month ";
+        if ($periodType == 'weekly') {
+
+        } elseif ($periodType == 'yearly') {
+            if ($columnType == 'character varying') {
+                $query .= "TO_DATE(\"$tableColumn\", 'YYYY') AS year ";
+            } else {
+                $query .= "DATE_TRUNC('year', \"$tableColumn\") AS year ";
+            }
+        }else {
+            if ($columnType == 'character varying') {
+                $query .= "TO_DATE(\"$tableColumn\", 'YYYY-MM') AS month ";
+            } else {
+                $query .= "DATE_TRUNC('month', \"$tableColumn\") AS month ";
+            }
         }
 
         $query .= "
@@ -73,12 +98,23 @@ class MainController extends Controller
         if (!is_null($endDate)) {
             $query .= " AND \"$tableColumn\" <= :end_date";
         }
-        $query .= "
-    GROUP BY
-        month
-    ORDER BY
-        month ASC
-";
+
+        if ($subDistrictColumn) {
+            if (!empty($subDistricts)) {
+                $query .= " AND \"$subDistrictColumn\" IN('" . explode("', '", $subDistricts) . "')";
+            }else {
+                $query .= " AND \"$subDistrictColumn\" IS NOT NULL AND \"$subDistrictColumn\" <> ''";
+            }
+        }
+
+        if ($periodType == "weekly") {
+            $query .= "GROUP BY week ORDER BY week ASC";
+
+        } elseif ($periodType == "yearly") {
+            $query .= "GROUP BY year ORDER BY year ASC";
+        } else {
+            $query .= "GROUP BY month ORDER BY month ASC";
+        }
 
         $params = [];
         if (!is_null($startDate)) {
