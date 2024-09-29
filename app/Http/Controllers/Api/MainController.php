@@ -33,7 +33,10 @@ class MainController extends Controller
      */
     public function sasaranTerlayani(DefaultRequest $request): \Winata\Core\Response\Http\Response
     {
-        $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::KUNJUNGAN_ANC_6->value;
+        $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::KUNJUNGAN_ANC_6;
+        if (!$service instanceof Service){
+            return $this->response();
+        }
         $tableName = $service->tableMaps();
         $tableColumn = $service->dateColumn();
         $startDate = $request->input('period.start');
@@ -119,7 +122,10 @@ class MainController extends Controller
      */
     public function sasaranPuskesmasTerlayani(DefaultRequest $request): \Winata\Core\Response\Http\Response
     {
-        $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::KUNJUNGAN_ANC_6->value;
+        $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::KUNJUNGAN_ANC_6;
+        if (!$service instanceof Service){
+            return $this->response();
+        }
         $tableName = $service->tableMaps();
         $tableColumn = $service->namaLembaga();
         $startDate = $request->input('period.start');
