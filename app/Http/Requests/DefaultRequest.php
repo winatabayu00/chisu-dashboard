@@ -26,7 +26,10 @@ class DefaultRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'region' => ['nullable', 'string'],
+            'region' => ['nullable', 'array'],
+            'region.district' => ['nullable', 'string'],
+            'region.sub_district' => ['nullable', 'string'],
+            'region.health_center' => ['nullable', 'string'],
             'period' => ['nullable', 'array'],
             'period.type' => ['nullable', 'string', 'in:weekly,monthly,yearly'],
             'period.start' => ['nullable', 'date'],
