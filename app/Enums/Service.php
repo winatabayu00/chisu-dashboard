@@ -106,6 +106,27 @@ enum Service: string
         };
     }
 
+    public function subGenderColumn()
+    {
+        return match ($this) {
+            self::KUNJUNGAN_ANC_6 => null, // K6
+            self::PERSALINAN_DI_FASILITAS_KESEHATAN => null,
+            self::KUNJUNGAN_NIFAS_LENGKAP => null,
+            self::IMUNISASI_DASAR_LENGKAP => 'Jenis Kelamin Anak',
+            self::IMUNISASI_LANJUTAN_BADUTA_LENGKAP => 'Jenis Kelamin Anak',
+            self::SKRINING_HIPOTIROID_KONGENITAL => 'JENIS KELAMIN(P/L)', // Hanya untuk Rumah Sakit
+            self::ASI_EKSKLUSIF => 'JK',// 6 bulan sejak bayi lahir
+            self::KUNJUNGAN_NEONATAL_LENGKAP => null,
+            self::PEMBERIAN_VITAMIN_A => 'JK',
+            self::LAYANAN_TUMBUH_KEMBANG => null,
+            self::IMUNISASI_LANJUTAN_LENGKAP => 'Jenis Kelamin Anak',
+            self::SKRINING_KESEHATAN => 'jk', // Hanya untuk Puskesmas
+            self::SKRINING_ANEMIA => null, //soon
+            self::KONSUMSI_TABLET_TABAH_DARAH => null,
+
+        };
+    }
+
     /**
      * KLASTER 3
      * dbSiptm == skrining ysia produktif
