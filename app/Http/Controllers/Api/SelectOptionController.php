@@ -22,7 +22,6 @@ class SelectOptionController extends Controller
     ];
 
     const SUB_DISTRICT = [
-<<<<<<< HEAD
         ["kode" => "*", "id" => "*", "nama" => "Semua Kelurahan", "level" => "3"],
         ["kode" => "3576021009", "id" => "KEDUNDUNG", "nama" => "KEDUNDUNG", "level" => "4", "puskesmas" => "KEDUNDUNG", "kecamatan" => "357602"],
         ["kode" => "3576021010", "id" => "WATES", "nama" => "WATES", "level" => "4", "puskesmas" => "WATES", "kecamatan" => "357602"],
@@ -51,36 +50,6 @@ class SelectOptionController extends Controller
         ['id' => 'GEDONGAN', 'nama' => 'PUSKESMAS GEDONGAN'],
         ['id' => 'WATES', 'nama' => 'PUSKESMAS WATES'],
         ['id' => 'KRANGGAN', 'nama' => 'PUSKESMAS KRANGGAN']
-=======
-        ["kode" => "*", "id" => "*", "name" => "Semua Kelurahan", "level" => "3"],
-        ["kode" => "3576021009", "id" => "KEDUNDUNG", "name" => "KEDUNDUNG", "level" => "4", "puskesmas" => "", "kecamatan" => "357602"],
-        ["kode" => "3576021010", "id" => "WATES", "name" => "WATES", "level" => "4", "puskesmas" => "", "kecamatan" => "357602"],
-        ["kode" => "3576031001", "id" => "KRANGGAN", "name" => "KRANGGAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357603"],
-        ["kode" => "3576031002", "id" => "MIJI", "name" => "MIJI", "level" => "4", "puskesmas" => "", "kecamatan" => "357603"],
-        ["kode" => "3576031003", "id" => "MERI", "name" => "MERI", "level" => "4", "puskesmas" => "", "kecamatan" => "357603"],
-        ["kode" => "3576031004", "id" => "JAGALAN", "name" => "JAGALAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357603"],
-        ["kode" => "3576031005", "id" => "SENTANAN", "name" => "SENTANAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357603"],
-        ["kode" => "3576021008", "id" => "BALONGSARI", "name" => "BALONGSARI", "level" => "4", "puskesmas" => "", "kecamatan" => "357602"],
-        ["kode" => "3576021004", "id" => "GEDONGAN", "name" => "GEDONGAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357602"],
-        ["kode" => "3576011003", "id" => "MENTIKAN", "name" => "MENTIKAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357601"],
-        ["kode" => "3576011004", "id" => "KAUMAN", "name" => "KAUMAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357601"],
-        ["kode" => "3576011005", "id" => "PULOREJO", "name" => "PULOREJO", "level" => "4", "puskesmas" => "", "kecamatan" => "357601"],
-        ["kode" => "3576011006", "id" => "PRAJURITKULON", "name" => "PRAJURITKULON", "level" => "4", "puskesmas" => "", "kecamatan" => "357601"],
-        ["kode" => "3576011007", "id" => "SURODINAWAN", "name" => "SURODINAWAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357601"],
-        ["kode" => "3576011008", "id" => "BLOOTO", "name" => "BLOOTO", "level" => "4", "puskesmas" => "", "kecamatan" => "357601"],
-        ["kode" => "3576021001", "id" => "GUNUNGGEDANGAN", "name" => "GUNUNGGEDANGAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357602"],
-        ["kode" => "3576021003", "id" => "MAGERSARI", "name" => "MAGERSARI", "level" => "4", "puskesmas" => "", "kecamatan" => "357602"],
-        ["kode" => "3576031006", "id" => "PURWOTENGAH", "name" => "PURWOTENGAH", "level" => "4", "puskesmas" => "", "kecamatan" => "357603"],
-    ];
-
-    const PUSKESMAS = [
-        ['id' => 'PUSKESMAS BLOOTO','name' => 'PUSKESMAS BLOOTO'],
-        ['id' => 'PUSKESMAS MENTIKAN','name' => 'PUSKESMAS MENTIKAN'],
-        ['id' => 'PUSKESMAS KEDUNDUNG','name' => 'PUSKESMAS KEDUNDUNG'],
-        ['id' => 'PUSKESMAS GEDONGAN','name' => 'PUSKESMAS GEDONGAN'],
-        ['id' => 'PUSKESMAS WATES','name' => 'PUSKESMAS WATES'],
-        ['id' => 'PUSKESMAS KRANGGAN','name' => 'PUSKESMAS KRANGGAN']
->>>>>>> 43400b0fd8ae31e127f691d052d22a2953b1de95
     ];
 
     /**
