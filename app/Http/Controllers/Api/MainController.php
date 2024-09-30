@@ -278,11 +278,12 @@ class MainController extends Controller
      */
     public function morbiditas(DefaultRequest $request): \Winata\Core\Response\Http\Response
     {
-        $results = DB::select("SELECT
-    nm_diagnosa as name,
-    COUNT(nm_diagnosa) as total
+        $results = DB::select("SELECT nm_diagnosa        as name,
+       COUNT(nm_diagnosa) as total
 FROM nd_diagnosa_ilp
-GROUP BY nm_diagnosa");
+GROUP BY nm_diagnosa
+ORDER BY total DESC
+LIMIT 30");
         return $this->response(collect($results)->map(function ($item) {
             return [
                 'count' => $item->total,
