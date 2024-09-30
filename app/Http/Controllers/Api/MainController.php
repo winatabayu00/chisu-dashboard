@@ -35,11 +35,11 @@ class MainController extends Controller
     {
         $data = [];
         $target = Target::cases();
-        foreach ($target as $data) {
+        foreach ($target as $item) {
             $data[] = [
-                'name' => $data->name,
-                'people_count' => $data->jumlahPenduduk(),
-                'service_count' => $data->totalKunjungan(),
+                'name' => $item->name,
+                'people_count' => $item->jumlahPenduduk(),
+                'service_count' => $item->totalKunjungan(),
             ];
         }
         return $this->response($data);
@@ -72,15 +72,59 @@ class MainController extends Controller
      */
     public function sasaranTerlayani(DefaultRequest $request): \Winata\Core\Response\Http\Response
     {
+// Payload processing
+
+// Mengambil indicator dari payload, jika tidak ada default ke 'KUNJUNGAN_ANC_6'
         $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::KUNJUNGAN_ANC_6;
-        if (!$service instanceof Service){
+        if (!$service instanceof Service) {
             return $this->response();
         }
+
+// Mapping nama tabel berdasarkan indicator (target)
         $tableName = $service->tableMaps();
+
+// Kolom sub_district berdasarkan indicator (target)
+        $subDistrictColumn = $service->subDistrictColumn();
+
+// Kolom tanggal berdasarkan indicator (target)
         $tableColumn = $service->dateColumn();
+
+// Mengambil periode start dan end dari payload
         $startDate = $request->input('period.start');
         $endDate = $request->input('period.end');
 
+// Mengambil tipe periode (monthly, weekly, yearly), default adalah 'monthly'
+        $periodType = !empty($request->input('period.type')) ? $request->input('period.type') : 'monthly';
+
+// Mengambil informasi region dari payload
+        $district = $request->input('region.district');
+        $subDistrict = $request->input('region.sub_district');
+        $healthCenter = $request->input('region.health_center');
+
+// Jika health_center ada, maka hanya query pada puskesmas/health_center tersebut
+        if (in_array($subDistrictColumn, ['Puskesmas', 'NAMA FASYANKES'])) {
+            if (!empty($healthCenter)) {
+                $subDistricts = [$healthCenter];
+            } else {
+                $subDistricts = [];
+            }
+        } elseif (!empty($subDistrictColumn)) {
+            // Jika health_center tidak ada, ambil sub_districts berdasarkan district dan sub_district dari payload
+            $subDistricts = $service->subDistricts($district, $subDistrict, $healthCenter);
+        } else {
+            $subDistricts = [];
+        }
+
+// Mengambil gender dari payload (misal 'male', 'female')
+        $gender = $request->input('gender');
+
+// Mengambil target dari payload (misal 'ibu_hamil', 'anak')
+        $target = $request->input('target');
+
+// Mengambil jenis agregasi dari payload (absolute, cumulative, dsb)
+        $aggregateType = $request->input('aggregate');
+
+// Mendapatkan tipe kolom (date atau character varying) dari tabel
         $columnType = DB::selectOne("
     SELECT data_type
     FROM information_schema.columns
@@ -90,14 +134,26 @@ class MainController extends Controller
             'column_name' => $tableColumn
         ])->data_type;
 
+// Query preparation
         $query = "
     SELECT
         COUNT(\"$tableColumn\") AS count_anc,
 ";
-        if ($columnType == 'character varying') {
-            $query .= "TO_DATE(\"$tableColumn\", 'YYYY-MM') AS month ";
+
+        if ($periodType == 'weekly') {
+            // Handle weekly aggregation
+        } elseif ($periodType == 'yearly') {
+            if ($columnType == 'character varying') {
+                $query .= "TO_DATE(\"$tableColumn\", 'YYYY') AS year ";
+            } else {
+                $query .= "DATE_TRUNC('year', \"$tableColumn\") AS year ";
+            }
         } else {
-            $query .= "DATE_TRUNC('month', \"$tableColumn\") AS month ";
+            if ($columnType == 'character varying') {
+                $query .= "TO_DATE(\"$tableColumn\", 'YYYY-MM') AS month ";
+            } else {
+                $query .= "DATE_TRUNC('month', \"$tableColumn\") AS month ";
+            }
         }
 
         $query .= "
@@ -106,34 +162,55 @@ class MainController extends Controller
     WHERE 1=1
 ";
 
+// Filtering based on startDate and endDate
         if (!is_null($startDate)) {
             $query .= " AND \"$tableColumn\" >= :start_date";
         }
         if (!is_null($endDate)) {
             $query .= " AND \"$tableColumn\" <= :end_date";
         }
-        $query .= "
-    GROUP BY
-        month
-    ORDER BY
-        month ASC
-";
 
-        $params = [];
-        if (!is_null($startDate)) {
-            $params['start_date'] = $startDate;
-        }
-        if (!is_null($endDate)) {
-            $params['end_date'] = $endDate;
+// Filtering based on subDistricts
+        if ($subDistrictColumn) {
+            if (!empty($subDistricts)) {
+                $query .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $subDistricts) . "')";
+            } else {
+                $query .= " AND \"$subDistrictColumn\" IS NOT NULL AND \"$subDistrictColumn\" <> ''";
+            }
         }
 
-        /**
-         * "     SELECT COUNT(\"Tgl Persalinan\") AS count_anc, DATE_TRUNC('month', TO_DATE(\"Tgl Persalinan\", 'YYYY-MM-DD')) AS month      FROM         \"dbEkohortPersalinan\"     WHERE 1=1     GROUP BY         month "
-         * */
+// Filtering based on gender
+//        if (!empty($gender)) {
+//            $query .= " AND \"gender\" = :gender";
+//        }
 
+// Filtering based on target
+//        if (!empty($target)) {
+//            $query .= " AND \"target\" = :target";
+//        }
+
+// Finalize query
+        if ($periodType == "weekly") {
+            $query .= " GROUP BY week ORDER BY week ASC";
+        } elseif ($periodType == "yearly") {
+            $query .= " GROUP BY year ORDER BY year ASC";
+        } else {
+            $query .= " GROUP BY month ORDER BY month ASC";
+        }
+
+// Preparing parameters for query
+        $params = [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+//            'gender' => $gender,
+//            'target' => $target,
+        ];
+
+// Execute query
         $results = DB::select($query, $params);
 
-        if ($request->input('aggregate') == 'absolute'){
+// Handle aggregate (absolute or cumulative)
+        if ($aggregateType == 'absolute') {
             return $this->response(collect($results)->map(function ($item) {
                 return [
                     'count' => $item->count_anc,
@@ -144,8 +221,8 @@ class MainController extends Controller
 
         $data = [];
         $count = 0;
-        foreach (collect($results) as $item){
-            $count = $count + $item->count_anc;
+        foreach (collect($results) as $item) {
+            $count += $item->count_anc;
             $data[] = [
                 'count' => $count,
                 'name' => Carbon::parse($item->month)->format('F'),
@@ -153,6 +230,8 @@ class MainController extends Controller
         }
 
         return $this->response($data);
+
+
     }
 
     /**
@@ -169,6 +248,8 @@ class MainController extends Controller
         $tableColumn = $service->namaLembaga();
         $startDate = $request->input('period.start');
         $endDate = $request->input('period.end');
+        $periodType = !empty($request->input('period.type')) ? $request->input('period.type') : 'monthly';
+
 
         $results = DB::select("
     SELECT

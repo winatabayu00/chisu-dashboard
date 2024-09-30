@@ -62,6 +62,72 @@ enum Service: string
     }
 
     /**
+     *
+     * @param string $code id atau nama kecamatan/puskesmas
+     * @param string $type ['kecamatan', 'kelurahan' or 'puskesmas']
+     */
+    public function subDistricts($district = null, $subdistrict = null, $puskesmas = null) : array
+    {
+        if (!empty($puskesmas)) {
+            // TODO: daftar desa/kelurahan per puskesmas petakan dari array constant
+            return [];
+        }
+        // jika kelurahan maka kembalikan saja array dengan 1 element
+        elseif (!empty($district)) {
+            if (!empty($subdistrict)) {
+                return [$subdistrict];
+            }else {
+                // TODO: daftar desa/kelurahan per kecamatan petakan dari array constant
+                return [];
+            }
+        }
+
+        return [];
+    }
+
+    public function districtColumn(): ?string
+    {
+        return match ($this) {
+            self::KUNJUNGAN_ANC_6 => 'Nama Kecamatan', // K6
+            self::PERSALINAN_DI_FASILITAS_KESEHATAN => 'Nama Kecamatan',
+            self::KUNJUNGAN_NIFAS_LENGKAP => 'Nama Kecamatan',
+            self::IMUNISASI_DASAR_LENGKAP => 'kecamatan',
+            self::IMUNISASI_LANJUTAN_BADUTA_LENGKAP => 'kecamatan',
+            self::SKRINING_HIPOTIROID_KONGENITAL => null, // Hanya untuk Rumah Sakit
+            self::ASI_EKSKLUSIF => 'Kec',// 6 bulan sejak bayi lahir
+            self::KUNJUNGAN_NEONATAL_LENGKAP => null,
+            self::PEMBERIAN_VITAMIN_A => 'Kec',
+            self::LAYANAN_TUMBUH_KEMBANG => null,
+            self::IMUNISASI_LANJUTAN_LENGKAP => 'Kecamatan',
+            self::SKRINING_KESEHATAN => null, // Hanya untuk Puskesmas
+            self::SKRINING_ANEMIA => 'Nama Kecamatan', //soon
+            self::KONSUMSI_TABLET_TABAH_DARAH => null,
+
+        };
+    }
+
+    public function subDistrictColumn(): ?string
+    {
+        return match ($this) {
+            self::KUNJUNGAN_ANC_6 => 'Nama Desa', // K6
+            self::PERSALINAN_DI_FASILITAS_KESEHATAN => 'Nama Desa',
+            self::KUNJUNGAN_NIFAS_LENGKAP => 'Nama Desa',
+            self::IMUNISASI_DASAR_LENGKAP => 'Kelurahan atau Desa',
+            self::IMUNISASI_LANJUTAN_BADUTA_LENGKAP => 'Kelurahan atau Desa',
+            self::SKRINING_HIPOTIROID_KONGENITAL => 'NAMA FASYANKES', // Hanya untuk Rumah Sakit
+            self::ASI_EKSKLUSIF => 'Desa/Kel',// 6 bulan sejak bayi lahir
+            self::KUNJUNGAN_NEONATAL_LENGKAP => null,
+            self::PEMBERIAN_VITAMIN_A => 'Desa/Kel',
+            self::LAYANAN_TUMBUH_KEMBANG => null,
+            self::IMUNISASI_LANJUTAN_LENGKAP => 'Kelurahan atau Desa',
+            self::SKRINING_KESEHATAN => 'Puskesmas', // Hanya untuk Puskesmas
+            self::SKRINING_ANEMIA => 'Nama Desa', //soon
+            self::KONSUMSI_TABLET_TABAH_DARAH => null,
+
+        };
+    }
+
+    /**
      * KLASTER 3
      * dbSiptm == skrining ysia produktif
      * */
