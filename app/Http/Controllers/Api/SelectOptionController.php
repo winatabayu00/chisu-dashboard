@@ -8,22 +8,21 @@ use App\Enums\Service;
 use App\Enums\Target;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Winata\Core\Response\Http\Response;
 
 class SelectOptionController extends Controller
 {
-    
+
     const DISTRICT = [
-        ["kode" => "*", "id" => "*", "nama" => "Semua Kecamatan", "level" => "2"],
-        ["kode" => "357601", "id" => "PRAJURITKULON", "nama" => "PRAJURITKULON", "level" => "3"],
-        ["kode" => "357602", "id" => "MAGERSARI", "nama" => "MAGERSARI", "level" => "3"],
-        ["kode" => "357603", "id" => "KRANGGAN", "nama" => "KRANGGAN", "level" => "3"],
+        ["kode" => "*", "id" => "*", "name" => "Semua Kecamatan", "level" => "2"],
+        ["kode" => "357601", "id" => "PRAJURITKULON", "name" => "PRAJURITKULON", "level" => "3"],
+        ["kode" => "357602", "id" => "MAGERSARI", "name" => "MAGERSARI", "level" => "3"],
+        ["kode" => "357603", "id" => "KRANGGAN", "name" => "KRANGGAN", "level" => "3"],
     ];
 
     const SUB_DISTRICT = [
+<<<<<<< HEAD
         ["kode" => "*", "id" => "*", "nama" => "Semua Kelurahan", "level" => "3"],
         ["kode" => "3576021009", "id" => "KEDUNDUNG", "nama" => "KEDUNDUNG", "level" => "4", "puskesmas" => "KEDUNDUNG", "kecamatan" => "357602"],
         ["kode" => "3576021010", "id" => "WATES", "nama" => "WATES", "level" => "4", "puskesmas" => "WATES", "kecamatan" => "357602"],
@@ -52,6 +51,36 @@ class SelectOptionController extends Controller
         ['id' => 'GEDONGAN', 'nama' => 'PUSKESMAS GEDONGAN'],
         ['id' => 'WATES', 'nama' => 'PUSKESMAS WATES'],
         ['id' => 'KRANGGAN', 'nama' => 'PUSKESMAS KRANGGAN']
+=======
+        ["kode" => "*", "id" => "*", "name" => "Semua Kelurahan", "level" => "3"],
+        ["kode" => "3576021009", "id" => "KEDUNDUNG", "name" => "KEDUNDUNG", "level" => "4", "puskesmas" => "", "kecamatan" => "357602"],
+        ["kode" => "3576021010", "id" => "WATES", "name" => "WATES", "level" => "4", "puskesmas" => "", "kecamatan" => "357602"],
+        ["kode" => "3576031001", "id" => "KRANGGAN", "name" => "KRANGGAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357603"],
+        ["kode" => "3576031002", "id" => "MIJI", "name" => "MIJI", "level" => "4", "puskesmas" => "", "kecamatan" => "357603"],
+        ["kode" => "3576031003", "id" => "MERI", "name" => "MERI", "level" => "4", "puskesmas" => "", "kecamatan" => "357603"],
+        ["kode" => "3576031004", "id" => "JAGALAN", "name" => "JAGALAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357603"],
+        ["kode" => "3576031005", "id" => "SENTANAN", "name" => "SENTANAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357603"],
+        ["kode" => "3576021008", "id" => "BALONGSARI", "name" => "BALONGSARI", "level" => "4", "puskesmas" => "", "kecamatan" => "357602"],
+        ["kode" => "3576021004", "id" => "GEDONGAN", "name" => "GEDONGAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357602"],
+        ["kode" => "3576011003", "id" => "MENTIKAN", "name" => "MENTIKAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357601"],
+        ["kode" => "3576011004", "id" => "KAUMAN", "name" => "KAUMAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357601"],
+        ["kode" => "3576011005", "id" => "PULOREJO", "name" => "PULOREJO", "level" => "4", "puskesmas" => "", "kecamatan" => "357601"],
+        ["kode" => "3576011006", "id" => "PRAJURITKULON", "name" => "PRAJURITKULON", "level" => "4", "puskesmas" => "", "kecamatan" => "357601"],
+        ["kode" => "3576011007", "id" => "SURODINAWAN", "name" => "SURODINAWAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357601"],
+        ["kode" => "3576011008", "id" => "BLOOTO", "name" => "BLOOTO", "level" => "4", "puskesmas" => "", "kecamatan" => "357601"],
+        ["kode" => "3576021001", "id" => "GUNUNGGEDANGAN", "name" => "GUNUNGGEDANGAN", "level" => "4", "puskesmas" => "", "kecamatan" => "357602"],
+        ["kode" => "3576021003", "id" => "MAGERSARI", "name" => "MAGERSARI", "level" => "4", "puskesmas" => "", "kecamatan" => "357602"],
+        ["kode" => "3576031006", "id" => "PURWOTENGAH", "name" => "PURWOTENGAH", "level" => "4", "puskesmas" => "", "kecamatan" => "357603"],
+    ];
+
+    const PUSKESMAS = [
+        ['id' => 'PUSKESMAS BLOOTO','name' => 'PUSKESMAS BLOOTO'],
+        ['id' => 'PUSKESMAS MENTIKAN','name' => 'PUSKESMAS MENTIKAN'],
+        ['id' => 'PUSKESMAS KEDUNDUNG','name' => 'PUSKESMAS KEDUNDUNG'],
+        ['id' => 'PUSKESMAS GEDONGAN','name' => 'PUSKESMAS GEDONGAN'],
+        ['id' => 'PUSKESMAS WATES','name' => 'PUSKESMAS WATES'],
+        ['id' => 'PUSKESMAS KRANGGAN','name' => 'PUSKESMAS KRANGGAN']
+>>>>>>> 43400b0fd8ae31e127f691d052d22a2953b1de95
     ];
 
     /**
@@ -62,18 +91,7 @@ class SelectOptionController extends Controller
     {
         // SELECT replace(replace(replace(id, '.0000', ''), '.00', ''), '.', '') kode, upper(nama) nama, level FROM `wilayah` WHERE id like '35.76%' and level > 1;
 
-        return response()->json(self::DISTRICT);
-        /*$result = DB::select('SELECT "Nama Kecamatan" as name
-FROM dbEkohortAnc
-WHERE "Nama Kecamatan" IS NOT NULL
-GROUP BY "Nama Kecamatan";');
-
-        return $this->response(collect($result)->map(function ($item) {
-            return [
-                'id' => Str::slug(strtolower($item->name), '_'),
-                'name' => $item->name,
-            ];
-        }));*/
+        return $this->response(self::DISTRICT);
 
     }
 
@@ -83,19 +101,16 @@ GROUP BY "Nama Kecamatan";');
      */
     public function getSubDistricts(Request $request): Response
     {
-        return response()->json(self::SUB_DISTRICT);
-
-        /*$result = DB::select('SELECT "Nama Desa" as name
-FROM dbEkohortAnc
-WHERE "Nama Desa" IS NOT NULL
-GROUP BY "Nama Desa";');
-
-        return $this->response(collect($result)->map(function ($item) {
-            return [
-                'id' => Str::slug(strtolower($item->name), '_'),
-                'name' => $item->name,
-            ];
-        }));*/
+        $validated = $request->validate([
+            'district_code' => ['nullable', 'string']
+        ]);
+        if (!empty($validated['district_code'])){
+            $data = collect(self::SUB_DISTRICT)
+                ->where('kecamatan', '=', $validated['district_code']);
+        }else{
+            $data = collect(self::SUB_DISTRICT);
+        }
+        return $this->response($data);
     }
 
     /**
@@ -104,19 +119,7 @@ GROUP BY "Nama Desa";');
      */
     public function getHealthCenter(Request $request): Response
     {
-        return response()->json(self::PUSKESMAS);
-
-        /**$result = DB::select('SELECT "Nama Lembaga" as name
-FROM dbEkohortAnc
-WHERE "Nama Lembaga" IS NOT NULL
-GROUP BY "Nama Lembaga";');
-
-        return $this->response(collect($result)->map(function ($item) {
-            return [
-                'id' => Str::slug(strtolower($item->name), '_'),
-                'name' => $item->name,
-            ];
-        }));*/
+        return $this->response(self::PUSKESMAS);
     }
 
     /**
