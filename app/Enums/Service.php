@@ -164,10 +164,10 @@ enum Service: string
             self::SKRINING_HIPOTIROID_KONGENITAL => null, //'TANGGAL DAN JAM PENGAMBILAN SPESIMEN',
             self::ASI_EKSKLUSIF => null,// 6 bulan sejak bayi lahir
             self::KUNJUNGAN_NEONATAL_LENGKAP => null,
-            self::PEMBERIAN_VITAMIN_A => null,
+            self::PEMBERIAN_VITAMIN_A => 'Tanggal Pengukuran',
             self::LAYANAN_TUMBUH_KEMBANG => null,
             self::IMUNISASI_LANJUTAN_LENGKAP => null,
-            self::SKRINING_KESEHATAN => null,
+            self::SKRINING_KESEHATAN => 'tgl_pendataan',
             self::SKRINING_ANEMIA => null, //soon
             self::KONSUMSI_TABLET_TABAH_DARAH => null,
 

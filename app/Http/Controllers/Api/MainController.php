@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Enums\Service;
 use App\Enums\Target;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Http\Requests\DefaultRequest;
+use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Winata\Core\Response\Http\Response;
@@ -31,39 +33,323 @@ class MainController extends Controller
     /**
      * @return Response
      */
-    public function listKunjungan(): Response
+    public function listKunjungan(Request $request): Response
     {
-        $data = [];
-        $target = Target::cases();
-        foreach ($target as $item) {
-            $data[] = [
-                'name' => $item->name,
-                'people_count' => $item->jumlahPenduduk(),
-                'service_count' => $item->totalKunjungan(),
-            ];
+        $validated = $request->validate([
+            'tahun' => ['nullable', 'string'],
+            'region_id' => ['nullable', 'string'],
+            'region_type' => ['nullable', Rule::in(['kecamatan', 'puskesmas', 'kelurahan'])],
+            'target' => ['nullable', 'string'],
+        ]);
+        if (empty($validated['tahun']))
+            $validated['tahun'] = date('Y');
+        if (empty($validated['target']))
+            $validated['target'] = null;
+        if (empty($validated['region_id']) || empty($validated['region_type'])) {
+            $validated['region_id'] = null;
+            $validated['region_type'] = null;
         }
+
+        $params = [
+            'tahun' => intval($validated['tahun'])
+        ];
+        $query = "SELECT jenis, sum(lakilaki) AS lakilaki, sum(perempuan) AS perempuan, sum(lakilaki+perempuan) AS total";
+        $query .= " FROM data_sasaran WHERE tahun = :tahun";
+        if (!empty($validated['target'])) {
+            $params['jenis'] = $validated['target'];
+            $query .= " AND jenis = :jenis";
+        }
+        if (!empty($validated['region_id'])) {
+            // $query .= ", " . $validated['region_type'];
+            if ($validated['region_type'] == 'kecamatan') {
+
+            }elseif ($validated['region_type'] == 'puskesmas') {
+
+            }else {
+                $region = [$validated['region_id']];
+            }
+
+            $query .= " AND kelurahan IN('" . implode("', '", $region) . "')";
+        }else {
+            $region = [];
+        }
+
+        $query .= " GROUP BY jenis";
+
+        $results = DB::select($query, $params);
+        // return $this->response($results);
+
+        $queries = [];
+        foreach ($results as $item) {
+            switch ($item->jenis) {
+                case 'IBU HAMIL':
+                    $service = Service::KUNJUNGAN_ANC_6;
+                    $tableName = $service->tableMaps();
+                    $dateColumn = $service->dateColumn();
+                    $q = "SELECT 'IBU HAMIL' jenis, DATE_PART('year', TO_DATE(\"$dateColumn\", 'YYYY')) tahun, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                    if ($dateColumn) {
+                        $q .= " AND DATE_PART('year', TO_DATE(\"$dateColumn\", 'YYYY')) = :tahun";
+                    }
+                    if (!empty($region)) {
+                        $subDistrictColumn = $service->subDistrictColumn();
+                        $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $region) . "')";
+                    }
+                    $q .= " group by tahun";
+                    $queries[] = $q;
+                    break;
+                case 'IBU BERSALIN':
+                    $service = Service::PERSALINAN_DI_FASILITAS_KESEHATAN;
+                    $tableName = $service->tableMaps();
+                    $dateColumn = $service->dateColumn();
+                    $q = "SELECT 'IBU BERSALIN' jenis, DATE_PART('year', TO_DATE(\"$dateColumn\", 'YYYY')) tahun, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                    if ($dateColumn) {
+                        $q .= " AND DATE_PART('year', TO_DATE(\"$dateColumn\", 'YYYY')) = :tahun";
+                    }
+                    if (!empty($region)) {
+                        $subDistrictColumn = $service->subDistrictColumn();
+                        $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $region) . "')";
+                    }
+                    $q .= " group by tahun";
+                    $queries[] = $q;
+                    break;
+                case 'BAYI BARU LAHIR':
+                    # code...
+                    break;
+                case 'BAYI 0-11 BULAN':
+                    $service = Service::IMUNISASI_DASAR_LENGKAP;
+                    $tableName = $service->tableMaps();
+                    $dateColumn = $service->dateColumn();
+                    $q = "SELECT 'BAYI 0-11 BULAN' jenis, DATE_PART('year', \"$dateColumn\") tahun, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                    if ($dateColumn) {
+                        $q .= " AND DATE_PART('year', \"$dateColumn\") = :tahun";
+                    }
+                    if (!empty($region)) {
+                        $subDistrictColumn = $service->subDistrictColumn();
+                        $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $region) . "')";
+                    }
+                    $q .= " group by tahun";
+                    $queries[] = $q;
+                    break;
+                case 'BAYI 12-23 BULAN':
+                    // $service = Service::IMUNISASI_DASAR_LENGKAP;
+                    $tableName = 'baduta';
+                    $dateColumn = 'Tanggal Imunisasi DPT-Hb-Hib 4';
+                    $q = "SELECT 'BAYI 12-23 BULAN' jenis, DATE_PART('year', TO_DATE(\"$dateColumn\", 'YYYY')) tahun, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                    if ($dateColumn) {
+                        $q .= " AND DATE_PART('year', TO_DATE(\"$dateColumn\", 'YYYY')) = :tahun";
+                    }
+                    if (!empty($region)) {
+                        $subDistrictColumn = 'Kelurahan atau Desa';
+                        $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $region) . "')";
+                    }
+                    $q .= " group by tahun";
+                    $queries[] = $q;
+                    break;
+                case 'BALITA':
+                    // $service = Service::IMUNISASI_DASAR_LENGKAP;
+                    $tableName = 'eppbgm';
+                    $dateColumn = 'Tanggal Pengukuran';
+                    $q = "SELECT 'BALITA' jenis, DATE_PART('year', \"$dateColumn\") tahun, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                    if ($dateColumn) {
+                        $q .= " AND DATE_PART('year', \"$dateColumn\") = (:tahun - 1)";
+                    }
+                    if (!empty($region)) {
+                        $subDistrictColumn = 'Kelurahan atau Desa';
+                        $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $region) . "')";
+                    }
+                    $q .= " group by tahun";
+                    $queries[] = $q;
+                    break;
+                case 'USIA PENDIDIKAN DASAR':
+                    $service = Service::SKRINING_KESEHATAN;
+                    $tableName = $service->tableMaps();
+                    $dateColumn = $service->dateColumn();
+                    $q = "SELECT 'USIA PENDIDIKAN DASAR' jenis, DATE_PART('year', \"$dateColumn\") tahun, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                    if ($dateColumn) {
+                        $q .= " AND DATE_PART('year', \"$dateColumn\") = :tahun";
+                    }
+                    if (!empty($validated['region_type']) && $validated['region_type'] == 'puskesmas') {
+                        $subDistrictColumn = $service->subDistrictColumn();
+                        $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", [$validated['region_id']]) . "')";
+                    }
+                    $q .= " group by tahun";
+                    $queries[] = $q;
+                    break;
+                case 'USIA PRODUKTIF':
+                    # code...
+                    break;
+            }
+        }
+
+        $query = "SELECT * FROM (" . implode("\nUNION\n", $queries) . ") AS T";
+        // return $this->response(['query' => $query]);
+        
+        $results2 = DB::select($query, ['tahun' => intval($validated['tahun'])]);
+
+
+        $data = [];
+        foreach ($results as $item) {
+            $d = [
+                'name' => $item->jenis,
+                'target_total' => $item->total,
+                'target_lakilaki' => $item->lakilaki,
+                'target_perempuan' => $item->perempuan,
+            ];
+
+            foreach ($results2 as $item2) {
+                if ($item->jenis == $item2->jenis) {
+                    $d['service_total'] = $item2->total;
+                    $d['service_lakilaki'] = $item2->lakilaki;
+                    $d['service_perempuan'] = $item2->perempuan;
+                }
+            }
+
+            $data[] = $d;
+        }
+        
         return $this->response($data);
     }
 
     /**
      * @return Response
      */
-    public function summaryKunjungan(): Response
+    public function summaryKunjungan(Request $request): Response
     {
-        $target = Target::cases();
-        $totalSasaran = 0;
-        $totalSasaranTerlayani = 0;
-        $totalSasaranKunjungan = 0;
-        foreach ($target as $data) {
-            $totalSasaran = $totalSasaran + 1;
-            $totalSasaranTerlayani = $totalSasaranTerlayani + $data->totalKunjungan();
-            $totalSasaranKunjungan = $totalSasaranKunjungan + $data->totalKunjungan();
-        }
-        return $this->response([
-            'total_sasaran' => $totalSasaran,
-            'total_sasaran_terlayani' => $totalSasaranTerlayani,
-            'total_sasaran_kunjungan' => $totalSasaranKunjungan,
+        $validated = $request->validate([
+            'tahun' => ['nullable', 'string'],
+            'region_id' => ['nullable', 'string'],
+            'region_type' => ['nullable', Rule::in(['kecamatan', 'puskesmas', 'kelurahan'])],
+            'target' => ['nullable', 'string'],
         ]);
+        if (empty($validated['tahun']))
+            $validated['tahun'] = date('Y');
+        if (empty($validated['target']))
+            $validated['target'] = null;
+        if (empty($validated['region_id']) || empty($validated['region_type'])) {
+            $validated['region_id'] = null;
+            $validated['region_type'] = null;
+        }
+
+        $params = [
+            'tahun' => intval($validated['tahun'])
+        ];
+
+        switch ($validated['target']) {
+            case 'IBU HAMIL':
+                $service = Service::KUNJUNGAN_ANC_6;
+                $tableName = $service->tableMaps();
+                $dateColumn = $service->dateColumn();
+                $q = "SELECT 'IBU HAMIL' jenis, DATE_PART('month', TO_DATE(\"$dateColumn\", 'YYYY-MM')) month, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                if ($dateColumn) {
+                    $q .= " AND DATE_PART('year', TO_DATE(\"$dateColumn\", 'YYYY')) = :tahun";
+                }
+                if (!empty($region)) {
+                    $subDistrictColumn = $service->subDistrictColumn();
+                    $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $region) . "')";
+                }
+                $q .= " group by month";
+                break;
+            case 'IBU BERSALIN':
+                $service = Service::PERSALINAN_DI_FASILITAS_KESEHATAN;
+                $tableName = $service->tableMaps();
+                $dateColumn = $service->dateColumn();
+                $q = "SELECT 'IBU BERSALIN' jenis, DATE_PART('month', TO_DATE(\"$dateColumn\", 'YYYY-MM')) month, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                if ($dateColumn) {
+                    $q .= " AND DATE_PART('year', TO_DATE(\"$dateColumn\", 'YYYY')) = :tahun";
+                }
+                if (!empty($region)) {
+                    $subDistrictColumn = $service->subDistrictColumn();
+                    $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $region) . "')";
+                }
+                $q .= " group by month";
+                break;
+            case 'BAYI BARU LAHIR':
+                # code...
+                break;
+            case 'BAYI 0-11 BULAN':
+                $service = Service::IMUNISASI_DASAR_LENGKAP;
+                $tableName = $service->tableMaps();
+                $dateColumn = $service->dateColumn();
+                $q = "SELECT 'BAYI 0-11 BULAN' jenis, DATE_PART('month', \"$dateColumn\") month, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                if ($dateColumn) {
+                    $q .= " AND DATE_PART('month', \"$dateColumn\") = :tahun";
+                }
+                if (!empty($region)) {
+                    $subDistrictColumn = $service->subDistrictColumn();
+                    $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $region) . "')";
+                }
+                $q .= " group by month";
+                break;
+            case 'BAYI 12-23 BULAN':
+                // $service = Service::IMUNISASI_DASAR_LENGKAP;
+                $tableName = 'baduta';
+                $dateColumn = 'Tanggal Imunisasi DPT-Hb-Hib 4';
+                $q = "SELECT 'BAYI 12-23 BULAN' jenis, DATE_PART('month', TO_DATE(\"$dateColumn\", 'YYYY-MM')) month, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                if ($dateColumn) {
+                    $q .= " AND DATE_PART('year', TO_DATE(\"$dateColumn\", 'YYYY')) = :tahun";
+                }
+                if (!empty($region)) {
+                    $subDistrictColumn = 'Kelurahan atau Desa';
+                    $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $region) . "')";
+                }
+                $q .= " group by month";
+                break;
+            case 'BALITA':
+                // $service = Service::IMUNISASI_DASAR_LENGKAP;
+                $tableName = 'eppbgm';
+                $dateColumn = 'Tanggal Pengukuran';
+                $q = "SELECT 'BALITA' jenis, DATE_PART('month', \"$dateColumn\") month, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                if ($dateColumn) {
+                    $q .= " AND DATE_PART('year', \"$dateColumn\") = (:tahun - 1)";
+                }
+                if (!empty($region)) {
+                    $subDistrictColumn = 'Kelurahan atau Desa';
+                    $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $region) . "')";
+                }
+                $q .= " group by month";
+                break;
+            case 'USIA PENDIDIKAN DASAR':
+                $service = Service::SKRINING_KESEHATAN;
+                $tableName = $service->tableMaps();
+                $dateColumn = $service->dateColumn();
+                $q = "SELECT 'USIA PENDIDIKAN DASAR' jenis, DATE_PART('month', \"$dateColumn\") month, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                if ($dateColumn) {
+                    $q .= " AND DATE_PART('year', \"$dateColumn\") = :tahun";
+                }
+                if (!empty($validated['region_type']) && $validated['region_type'] == 'puskesmas') {
+                    $subDistrictColumn = $service->subDistrictColumn();
+                    $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", [$validated['region_id']]) . "')";
+                }
+                $q .= " group by month";
+                break;
+            case 'USIA PRODUKTIF':
+                # code...
+                break;
+        }
+
+        $results = DB::select($q, ['tahun' => intval($validated['tahun'])]);
+
+        return $this->response(collect($results)->map(function ($item) {
+            return [
+                'count' => $item->total,
+                'name' => Carbon::parse($item->month)->format('F'),
+            ];
+        }));
+
+        // $target = Target::cases();
+        // $totalSasaran = 0;
+        // $totalSasaranTerlayani = 0;
+        // $totalSasaranKunjungan = 0;
+        // foreach ($target as $data) {
+        //     $totalSasaran = $totalSasaran + 1;
+        //     $totalSasaranTerlayani = $totalSasaranTerlayani + $data->totalKunjungan();
+        //     $totalSasaranKunjungan = $totalSasaranKunjungan + $data->totalKunjungan();
+        // }
+        // return $this->response([
+        //     'total_sasaran' => $totalSasaran,
+        //     'total_sasaran_terlayani' => $totalSasaranTerlayani,
+        //     'total_sasaran_kunjungan' => $totalSasaranKunjungan,
+        // ]);
     }
 
     /**
