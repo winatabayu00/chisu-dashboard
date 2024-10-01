@@ -60,7 +60,12 @@ class SelectOptionController extends Controller
     {
         // SELECT replace(replace(replace(id, '.0000', ''), '.00', ''), '.', '') kode, upper(nama) nama, level FROM `wilayah` WHERE id like '35.76%' and level > 1;
 
-        return $this->response(self::DISTRICT);
+        return $this->response(collect(self::DISTRICT)->map(function ($item){
+            return [
+                'id' => $item['kode'],
+                'name' => $item['name'],
+            ];
+        }));
 
     }
 
