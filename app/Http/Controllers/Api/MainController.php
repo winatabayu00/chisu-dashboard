@@ -619,12 +619,42 @@ class MainController extends Controller
      */
     public function morbiditas(DefaultRequest $request): \Winata\Core\Response\Http\Response
     {
-        $results = DB::select("SELECT nm_diagnosa        as name,
-       COUNT(nm_diagnosa) as total
-FROM nd_diagnosa_ilp
-GROUP BY nm_diagnosa
-ORDER BY total DESC
-LIMIT 30");
+        $dummyService = Service::PASIEN_HIPERTENSI;
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $district = $request->input('region.district');
+        $subDistrict = $request->input('region.sub_district');
+        $healthCenter = $request->input('region.health_center');
+        $subDistricts = $dummyService->subDistricts($district, $subDistrict, $healthCenter);
+
+        $params = [];
+        $query = "SELECT nm_diagnosa as name, COUNT(nm_diagnosa) as total FROM nd_diagnosa_ilp WHERE true ";
+        // Filtering based on startDate and endDate
+        if (!empty($startDate)) {
+            $query .= " AND \"tgl\" >= :start_date";
+            $params['start_date'] = $startDate;
+        }
+        if (!empty($endDate)) {
+            $query .= " AND \"tgl\" <= :end_date";
+            $params['end_date'] = $endDate;
+        }
+
+        // Filtering based on gender
+        if (!empty($gender)) {
+            $gender = $gender == 'L' ? 'male' : ($gender == 'P' ? 'female' : null);
+            if ($gender) {
+                $query .= " AND \"sex\" = :gender";
+                $params['gender'] = $gender;
+            }
+        }
+
+        if (!empty($subDistricts)) {
+            $query .= " AND \"nama_kelurahan\" IN('" . implode("', '", $subDistricts) . "')";
+        }
+
+        $query .= " GROUP BY nm_diagnosa ORDER BY total DESC LIMIT 30";
+
+        $results = DB::select($query, $params);
         return $this->response(collect($results)->map(function ($item) {
             return [
                 'count' => $item->total,
