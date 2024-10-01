@@ -68,6 +68,21 @@ enum Target: string
         };
     }
 
+    public function capitalName(): string
+    {
+        return match ($this){
+            self::IBU_HAMIL => 'IBU HAMIL',
+            self::IBU_BERSALIN => 'IBU BERSALIN',
+            self::BAYI_BARU_LAHIR => 'BAYI BARU LAHIR',
+            self::BAYI_DIBAWAH_6_BULAN => 'BAYI 0-6 BULAN', 
+            self::BAYI => 'BAYI 0-11 BULAN',
+            self::ANAK_USIA_12_SAMPAI_23_BULAN => 'BAYI 12-23 BULAN',
+            self::BALITA => 'BALITA',
+            self::ANAK_USIA_SEKOLAH => 'USIA PENDIDIKAN DASAR',
+            self::REMAJA_PUTRI => 'USIA PRODUKTIF',
+        };
+    }
+
     /**
      * @return string
      */

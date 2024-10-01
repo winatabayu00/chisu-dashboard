@@ -53,14 +53,16 @@ class MainController extends Controller
         }
         if (empty($validated['aggregate']))
             $validated['aggregate'] = 'absolute';
+        
+        $target = Target::tryFrom($validated['target']) ?? null;
 
         $params = [
             'tahun' => intval($validated['tahun'])
         ];
         $query = "SELECT jenis, sum(lakilaki) AS lakilaki, sum(perempuan) AS perempuan, sum(lakilaki+perempuan) AS total";
         $query .= " FROM data_sasaran WHERE tahun = :tahun";
-        if (!empty($validated['target'])) {
-            $params['jenis'] = $validated['target'];
+        if (!empty($validated['target']) && $target) {
+            $params['jenis'] = $target->capitalName(); //$validated['target'];
             $query .= " AND jenis = :jenis";
         }
         if (!empty($validated['region_id'])) {
@@ -83,6 +85,9 @@ class MainController extends Controller
         $results = DB::select($query, $params);
         // return $this->response($results);
 
+        $params = [
+            'tahun' => intval($validated['tahun'])
+        ];
         $queries = [];
         foreach ($results as $item) {
             switch ($item->jenis) {
@@ -188,7 +193,7 @@ class MainController extends Controller
         $query = "SELECT * FROM (" . implode("\nUNION\n", $queries) . ") AS T";
         // return $this->response(['query' => $query]);
         
-        $results2 = DB::select($query, ['tahun' => intval($validated['tahun'])]);
+        $results2 = DB::select($query, $params);
 
         $data = [];
         $all = [];
