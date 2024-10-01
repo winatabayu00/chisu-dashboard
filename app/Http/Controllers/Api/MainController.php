@@ -220,7 +220,7 @@ class MainController extends Controller
     /**
      * @return Response
      */
-    public function summaryKunjungan(Request $request): Response
+    public function totalTerlayani(Request $request): Response
     {
         $validated = $request->validate([
             'tahun' => ['nullable', 'string'],
@@ -342,21 +342,27 @@ class MainController extends Controller
                 'name' => Carbon::parse($item->month)->format('F'),
             ];
         }));
+    }
 
-        // $target = Target::cases();
-        // $totalSasaran = 0;
-        // $totalSasaranTerlayani = 0;
-        // $totalSasaranKunjungan = 0;
-        // foreach ($target as $data) {
-        //     $totalSasaran = $totalSasaran + 1;
-        //     $totalSasaranTerlayani = $totalSasaranTerlayani + $data->totalKunjungan();
-        //     $totalSasaranKunjungan = $totalSasaranKunjungan + $data->totalKunjungan();
-        // }
-        // return $this->response([
-        //     'total_sasaran' => $totalSasaran,
-        //     'total_sasaran_terlayani' => $totalSasaranTerlayani,
-        //     'total_sasaran_kunjungan' => $totalSasaranKunjungan,
-        // ]);
+    /**
+     * @return Response
+     */
+    public function summaryKunjungan(Request $request): Response
+    {
+        $target = Target::cases();
+        $totalSasaran = 0;
+        $totalSasaranTerlayani = 0;
+        $totalSasaranKunjungan = 0;
+        foreach ($target as $data) {
+            $totalSasaran = $totalSasaran + 1;
+            $totalSasaranTerlayani = $totalSasaranTerlayani + $data->totalKunjungan();
+            $totalSasaranKunjungan = $totalSasaranKunjungan + $data->totalKunjungan();
+        }
+        return $this->response([
+            'total_sasaran' => $totalSasaran,
+            'total_sasaran_terlayani' => $totalSasaranTerlayani,
+            'total_sasaran_kunjungan' => $totalSasaranKunjungan,
+        ]);
     }
 
     /**
