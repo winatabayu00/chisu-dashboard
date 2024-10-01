@@ -239,7 +239,7 @@ class MainController extends Controller
                 $service = Service::KUNJUNGAN_ANC_6;
                 $tableName = $service->tableMaps();
                 $dateColumn = $service->dateColumn();
-                $q = "SELECT 'IBU HAMIL' jenis, DATE_PART('month', TO_DATE(\"$dateColumn\", 'YYYY-MM')) month, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                $q = "SELECT 'IBU HAMIL' jenis, TO_DATE(\"$dateColumn\", 'YYYY-MM') \"month\", COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
                 if ($dateColumn) {
                     $q .= " AND DATE_PART('year', TO_DATE(\"$dateColumn\", 'YYYY')) = :tahun";
                 }
@@ -253,7 +253,7 @@ class MainController extends Controller
                 $service = Service::PERSALINAN_DI_FASILITAS_KESEHATAN;
                 $tableName = $service->tableMaps();
                 $dateColumn = $service->dateColumn();
-                $q = "SELECT 'IBU BERSALIN' jenis, DATE_PART('month', TO_DATE(\"$dateColumn\", 'YYYY-MM')) month, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                $q = "SELECT 'IBU BERSALIN' jenis, TO_DATE(\"$dateColumn\", 'YYYY-MM') \"month\", COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
                 if ($dateColumn) {
                     $q .= " AND DATE_PART('year', TO_DATE(\"$dateColumn\", 'YYYY')) = :tahun";
                 }
@@ -270,7 +270,7 @@ class MainController extends Controller
                 $service = Service::IMUNISASI_DASAR_LENGKAP;
                 $tableName = $service->tableMaps();
                 $dateColumn = $service->dateColumn();
-                $q = "SELECT 'BAYI 0-11 BULAN' jenis, DATE_PART('month', \"$dateColumn\") month, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                $q = "SELECT 'BAYI 0-11 BULAN' jenis, DATE_TRUNC('month', \"$dateColumn\") \"month\", COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
                 if ($dateColumn) {
                     $q .= " AND DATE_PART('month', \"$dateColumn\") = :tahun";
                 }
@@ -284,7 +284,7 @@ class MainController extends Controller
                 // $service = Service::IMUNISASI_DASAR_LENGKAP;
                 $tableName = 'baduta';
                 $dateColumn = 'Tanggal Imunisasi DPT-Hb-Hib 4';
-                $q = "SELECT 'BAYI 12-23 BULAN' jenis, DATE_PART('month', TO_DATE(\"$dateColumn\", 'YYYY-MM')) month, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                $q = "SELECT 'BAYI 12-23 BULAN' jenis, TO_DATE(\"$dateColumn\", 'YYYY-MM') \"month\", COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
                 if ($dateColumn) {
                     $q .= " AND DATE_PART('year', TO_DATE(\"$dateColumn\", 'YYYY')) = :tahun";
                 }
@@ -298,7 +298,7 @@ class MainController extends Controller
                 // $service = Service::IMUNISASI_DASAR_LENGKAP;
                 $tableName = 'eppbgm';
                 $dateColumn = 'Tanggal Pengukuran';
-                $q = "SELECT 'BALITA' jenis, DATE_PART('month', \"$dateColumn\") month, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                $q = "SELECT 'BALITA' jenis, DATE_TRUNC('month', \"$dateColumn\") \"month\", COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
                 if ($dateColumn) {
                     $q .= " AND DATE_PART('year', \"$dateColumn\") = (:tahun - 1)";
                 }
@@ -312,7 +312,7 @@ class MainController extends Controller
                 $service = Service::SKRINING_KESEHATAN;
                 $tableName = $service->tableMaps();
                 $dateColumn = $service->dateColumn();
-                $q = "SELECT 'USIA PENDIDIKAN DASAR' jenis, DATE_PART('month', \"$dateColumn\") month, COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
+                $q = "SELECT 'USIA PENDIDIKAN DASAR' jenis, DATE_TRUNC('month', \"$dateColumn\") \"month\", COUNT(*) total, COUNT(*) perempuan, 0 lakilaki from \"$tableName\" where true";
                 if ($dateColumn) {
                     $q .= " AND DATE_PART('year', \"$dateColumn\") = :tahun";
                 }
