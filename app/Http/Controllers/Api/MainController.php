@@ -10,6 +10,7 @@ use App\Http\Requests\DefaultRequest;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Winata\Core\Response\Http\Response;
 
 class MainController extends Controller
@@ -40,6 +41,7 @@ class MainController extends Controller
             'region_id' => ['nullable', 'string'],
             'region_type' => ['nullable', Rule::in(['kecamatan', 'puskesmas', 'kelurahan'])],
             'target' => ['nullable', 'string'],
+            'aggregate' => ['nullable', Rule::in(['absolute', 'cumulative', 'percentage'])],
         ]);
         if (empty($validated['tahun']))
             $validated['tahun'] = date('Y');
@@ -49,6 +51,8 @@ class MainController extends Controller
             $validated['region_id'] = null;
             $validated['region_type'] = null;
         }
+        if (empty($validated['aggregate']))
+            $validated['aggregate'] = 'absolute';
 
         $params = [
             'tahun' => intval($validated['tahun'])
@@ -214,6 +218,7 @@ class MainController extends Controller
             }
         }
         
+        $data = $this->finalProcess($data, $validated['aggregate'], ['target_total', 'target_lakilaki', 'target_perempuan', 'service_total', 'service_lakilaki', 'service_perempuan']);
         return $this->response([ 'results' => $data, 'total' => $all]);
     }
 
@@ -227,15 +232,20 @@ class MainController extends Controller
             'region_id' => ['nullable', 'string'],
             'region_type' => ['nullable', Rule::in(['kecamatan', 'puskesmas', 'kelurahan'])],
             'target' => ['nullable', 'string'],
+            'aggregate' => ['nullable', Rule::in(['absolute', 'cumulative', 'percentage'])],
         ]);
         if (empty($validated['tahun']))
             $validated['tahun'] = date('Y');
-        if (empty($validated['target']))
-            $validated['target'] = null;
+        if (empty($validated['target'])) {
+            return $this->response([]);
+            // $validated['target'] = null;
+        }
         if (empty($validated['region_id']) || empty($validated['region_type'])) {
             $validated['region_id'] = null;
             $validated['region_type'] = null;
         }
+        if (empty($validated['aggregate']))
+            $validated['aggregate'] = 'absolute';
 
         $params = [
             'tahun' => intval($validated['tahun'])
@@ -336,12 +346,15 @@ class MainController extends Controller
 
         $results = DB::select($q, ['tahun' => intval($validated['tahun'])]);
 
-        return $this->response(collect($results)->map(function ($item) {
+        $data = collect($results)->map(function ($item) {
             return [
                 'count' => $item->total,
                 'name' => Carbon::parse($item->month)->format('F'),
             ];
-        }));
+        })->toArray();
+
+        $data = $this->finalProcess($data, $validated['aggregate']);
+        return $this->response($data);
     }
 
     /**
@@ -374,7 +387,7 @@ class MainController extends Controller
 // Payload processing
 
 // Mengambil indicator dari payload, jika tidak ada default ke 'KUNJUNGAN_ANC_6'
-        $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::KUNJUNGAN_ANC_6;
+        $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::PASIEN_HIPERTENSI;
         if (!$service instanceof Service) {
             return $this->response();
         }
@@ -382,9 +395,9 @@ class MainController extends Controller
 // Mapping nama tabel berdasarkan indicator (target)
         $tableName = $service->tableMaps();
 
-        if (strpos($tableName, 'function:') == 0) {
+        if (strpos($tableName, 'function:') === 0) {
             $func = str_replace('function:', '', $tableName) . 'Terlayani';
-            return $this->$func($request);
+            return $this->$func($request, $service);
         }
 
 // Kolom sub_district berdasarkan indicator (target)
@@ -513,29 +526,15 @@ class MainController extends Controller
 // Execute query
         $results = DB::select($query, $params);
 
-// Handle aggregate (absolute or cumulative)
-        if ($aggregateType == 'absolute') {
-            return $this->response(collect($results)->map(function ($item) {
-                return [
-                    'count' => $item->count_anc,
-                    'name' => Carbon::parse($item->month)->format('F'),
-                ];
-            }));
-        }
-
-        $data = [];
-        $count = 0;
-        foreach (collect($results) as $item) {
-            $count += $item->count_anc;
-            $data[] = [
-                'count' => $count,
+        $data = collect($results)->map(function ($item) {
+            return [
+                'count' => $item->count_anc,
                 'name' => Carbon::parse($item->month)->format('F'),
             ];
-        }
+        })->toArray();
 
+        $data = $this->finalProcess($data, $aggregateType);
         return $this->response($data);
-
-
     }
 
     /**
@@ -544,21 +543,22 @@ class MainController extends Controller
      */
     public function sasaranPuskesmasTerlayani(DefaultRequest $request): \Winata\Core\Response\Http\Response
     {
-        $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::KUNJUNGAN_ANC_6;
+        $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::PASIEN_HIPERTENSI;
         if (!$service instanceof Service){
             return $this->response();
         }
         $tableName = $service->tableMaps();
 
-        if (strpos($tableName, 'function:') == 0) {
+        if (strpos($tableName, 'function:') === 0) {
             $func = str_replace('function:', '', $tableName) . 'PuskesmasTerlayani';
-            return $this->$func($request);
+            return $this->$func($request, $service);
         }
 
         $tableColumn = $service->namaLembaga();
         $startDate = $request->input('period.start');
         $endDate = $request->input('period.end');
         $periodType = !empty($request->input('period.type')) ? $request->input('period.type') : 'monthly';
+        $aggregateType = $request->input('aggregate');
 
 
         $results = DB::select("
@@ -574,12 +574,22 @@ class MainController extends Controller
     ORDER BY
         \"$tableColumn\" ASC
 ");
-        return $this->response(collect($results)->map(function ($item) {
+        $data = collect($results)->map(function ($item) {
             return [
                 'count' => $item->total,
                 'name' => $item->name,
             ];
-        }));
+        })->toArray();
+
+        $data = $this->finalProcess($data, $aggregateType);
+        return $this->response($data);
+
+        // return $this->response(collect($results)->map(function ($item) {
+        //     return [
+        //         'count' => $item->total,
+        //         'name' => $item->name,
+        //     ];
+        // }));
     }
 
     /**
@@ -613,13 +623,10 @@ LIMIT 30");
         $district = $request->input('region.district');
         $subDistrict = $request->input('region.sub_district');
         $healthCenter = $request->input('region.health_center');
-
-        if (!empty($subDistrictColumn)) {
-            // Jika health_center tidak ada, ambil sub_districts berdasarkan district dan sub_district dari payload
-            $subDistricts = $service->subDistricts($district, $subDistrict, $healthCenter);
-        } else {
-            $subDistricts = [];
-        }
+        $subDistricts = $service->subDistricts($district, $subDistrict, $healthCenter);
+        $districtData = collect(SelectOptionController::DISTRICT)
+            ->where('kode', '=', $district)->first();
+        $districtName = !empty($districtData) ? $districtData['name'] : null;
 
         // Mengambil gender dari payload (misal 'male', 'female')
         $gender = $request->input('gender');
@@ -634,6 +641,9 @@ LIMIT 30");
             $startDate,
             $endDate,
             $periodType, // unused, 'monthly' supprted only
+            $district,
+            $districtName,
+            $healthCenter,
             $subDistricts,
             $gender,
             $target, // unused
@@ -645,11 +655,35 @@ LIMIT 30");
             $startDate,
             $endDate,
             $periodType,
+            $district,
+            $districtName,
+            $healthCenter,
             $subDistricts,
             $gender,
             $target,
             $aggregateType
         ) = $this->ambilInputSasaran($request, $service);
+
+        if ($districtName)
+            $query = ['nama_kecamatan' => $districtName];
+        else
+            $query = [];
+        
+        // get data dari https://gayatri.mojokertokota.go.id/dbilp/htn/htperbulan.php
+        $response = Http::get('https://gayatri.mojokertokota.go.id/dbilp/htn/htperbulan.php', $query);
+        $data = [];
+        if ($response->ok()) {
+            $resp = @json_decode($response->body(), true);
+            $data = collect($resp['data'])->map(function($item) {
+                return [
+                    'count' => $item['jumlah'],
+                    'name' => Carbon::parse($item['tahun'] . '-' . str_pad($item['bulan'], 2, '0', STR_PAD_LEFT) . '-01')->format('F'),
+                ];
+            })->toArray();
+        }
+
+
+        return $this->response($data);
     }
 
     protected function sasaranHipertensiPuskesmasTerlayani(DefaultRequest $request, Service $service) : Response {
@@ -657,11 +691,68 @@ LIMIT 30");
             $startDate,
             $endDate,
             $periodType,
+            $district,
+            $districtName,
+            $healthCenter,
             $subDistricts,
             $gender,
             $target,
             $aggregateType
         ) = $this->ambilInputSasaran($request, $service);
+
+        if ($districtName)
+            $query = ['nama_kecamatan' => $districtName];
+        else
+            $query = [];
+
+        // get data dari https://gayatri.mojokertokota.go.id/dbilp/htn/htperfaskes.php
+        $response = Http::get('https://gayatri.mojokertokota.go.id/dbilp/htn/htperfaskes.php', $query);
+        $data = [];
+        if ($response->ok()) {
+            $resp = @json_decode($response->body(), true);
+            $data = collect($resp['data'])->map(function($item) {
+                return [
+                    'count' => $item['jumlah'],
+                    'name' => $item['fasyankes'],
+                ];
+            })->toArray();
+        }
+
+
+        return $this->response($data);
     }
 
+    private function finalProcess($data, $aggregate, $columns = ['count']) {
+        if ($aggregate == 'cumulative') {
+            $total = [];
+            foreach ($columns as $col) {
+                $total[$col] = 0;
+            }
+            for ($i=0; $i < count($data); $i++) {
+                foreach ($columns as $col) {
+                    $count = $data[$i][$col];
+                    $data[$i][$col] = $count + $total[$col];
+                    $total[$col] += $count;
+                }
+            }
+        }elseif ($aggregate == 'percentage') {
+            $total = [];
+            foreach ($columns as $col) {
+                $total[$col] = 0;
+            }
+            for ($i=0; $i < count($data); $i++) {
+                foreach ($columns as $col) {
+                    $total[$col] += $data[$i][$col];
+                }
+            }
+
+            for ($i=0; $i < count($data); $i++) {
+                foreach ($columns as $col) {
+                    $data[$i][$col] = $total[$col] > 0 ? $data[$i][$col] * 100 / $total[$col] : 0;
+                }
+            }
+        }
+
+        return $data;
+    }
 }

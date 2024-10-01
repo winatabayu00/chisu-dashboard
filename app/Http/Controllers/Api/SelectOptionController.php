@@ -16,7 +16,7 @@ class SelectOptionController extends Controller
 
     const DISTRICT = [
         ["kode" => "*", "id" => "*", "name" => "Semua Kecamatan", "level" => "2"],
-        ["kode" => "357601", "id" => "PRAJURITKULON", "name" => "PRAJURITKULON", "level" => "3"],
+        ["kode" => "357601", "id" => "PRAJURITKULON", "name" => "PRAJURIT KULON", "level" => "3"],
         ["kode" => "357602", "id" => "MAGERSARI", "name" => "MAGERSARI", "level" => "3"],
         ["kode" => "357603", "id" => "KRANGGAN", "name" => "KRANGGAN", "level" => "3"],
     ];
@@ -35,10 +35,10 @@ class SelectOptionController extends Controller
         ["kode" => "3576011003", "id" => "MENTIKAN", "name" => "MENTIKAN", "level" => "4", "puskesmas" => "MENTIKAN", "kecamatan" => "357601"],
         ["kode" => "3576011004", "id" => "KAUMAN", "name" => "KAUMAN", "level" => "4", "puskesmas" => "MENTIKAN", "kecamatan" => "357601"],
         ["kode" => "3576011005", "id" => "PULOREJO", "name" => "PULOREJO", "level" => "4", "puskesmas" => "MENTIKAN", "kecamatan" => "357601"],
-        ["kode" => "3576011006", "id" => "PRAJURITKULON", "name" => "PRAJURITKULON", "level" => "4", "puskesmas" => "BLOOTO", "kecamatan" => "357601"],
+        ["kode" => "3576011006", "id" => "PRAJURITKULON", "name" => "PRAJURIT KULON", "level" => "4", "puskesmas" => "BLOOTO", "kecamatan" => "357601"],
         ["kode" => "3576011007", "id" => "SURODINAWAN", "name" => "SURODINAWAN", "level" => "4", "puskesmas" => "BLOOTO", "kecamatan" => "357601"],
         ["kode" => "3576011008", "id" => "BLOOTO", "name" => "BLOOTO", "level" => "4", "puskesmas" => "BLOOTO", "kecamatan" => "357601"],
-        ["kode" => "3576021001", "id" => "GUNUNGGEDANGAN", "name" => "GUNUNGGEDANGAN", "level" => "4", "puskesmas" => "KEDUNDUNG", "kecamatan" => "357602"],
+        ["kode" => "3576021001", "id" => "GUNUNGGEDANGAN", "name" => "GUNUNG GEDANGAN", "level" => "4", "puskesmas" => "KEDUNDUNG", "kecamatan" => "357602"],
         ["kode" => "3576021003", "id" => "MAGERSARI", "name" => "MAGERSARI", "level" => "4", "puskesmas" => "GEDONGAN", "kecamatan" => "357602"],
         ["kode" => "3576031006", "id" => "PURWOTENGAH", "name" => "PURWOTENGAH", "level" => "4", "puskesmas" => "GEDONGAN", "kecamatan" => "357603"],
     ];
