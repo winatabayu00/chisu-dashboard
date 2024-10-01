@@ -23,6 +23,7 @@ enum Service: string
     case SKRINING_KESEHATAN = 'skrining_kesehatan';
     case SKRINING_ANEMIA = 'skrining_anemia';
     case KONSUMSI_TABLET_TABAH_DARAH = 'konsumsi_tablet_tabel_darah';
+    case SKRINING_HIPERTENSI = 'skrining_hipertensi';
 
     /**
      * @return array
@@ -58,6 +59,7 @@ enum Service: string
             self::SKRINING_KESEHATAN => 'fbpd',
             self::SKRINING_ANEMIA => 'dbEkohortAnc', //soon
             self::KONSUMSI_TABLET_TABAH_DARAH => null,
+            self::SKRINING_HIPERTENSI => 'function:sasaranHipertensi',
         };
     }
 

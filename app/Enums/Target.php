@@ -64,7 +64,7 @@ enum Target: string
             self::ANAK_USIA_12_SAMPAI_23_BULAN => [Service::IMUNISASI_LANJUTAN_BADUTA_LENGKAP],
             self::BALITA => [Service::PEMBERIAN_VITAMIN_A, Service::LAYANAN_TUMBUH_KEMBANG],
             self::ANAK_USIA_SEKOLAH => [Service::IMUNISASI_LANJUTAN_LENGKAP, Service::SKRINING_KESEHATAN],
-            self::REMAJA_PUTRI => [Service::SKRINING_ANEMIA, Service::KONSUMSI_TABLET_TABAH_DARAH],
+            self::REMAJA_PUTRI => [Service::SKRINING_ANEMIA, Service::KONSUMSI_TABLET_TABAH_DARAH, Service::SKRINING_HIPERTENSI],
         };
     }
 

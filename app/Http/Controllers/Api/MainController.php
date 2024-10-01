@@ -382,6 +382,11 @@ class MainController extends Controller
 // Mapping nama tabel berdasarkan indicator (target)
         $tableName = $service->tableMaps();
 
+        if (strpos($tableName, 'function:') == 0) {
+            $func = str_replace('function:', '', $tableName) . 'Terlayani';
+            return $this->$func($request);
+        }
+
 // Kolom sub_district berdasarkan indicator (target)
         $subDistrictColumn = $service->subDistrictColumn();
 
@@ -544,6 +549,12 @@ class MainController extends Controller
             return $this->response();
         }
         $tableName = $service->tableMaps();
+
+        if (strpos($tableName, 'function:') == 0) {
+            $func = str_replace('function:', '', $tableName) . 'PuskesmasTerlayani';
+            return $this->$func($request);
+        }
+
         $tableColumn = $service->namaLembaga();
         $startDate = $request->input('period.start');
         $endDate = $request->input('period.end');
@@ -590,4 +601,67 @@ LIMIT 30");
             ];
         }));
     }
+
+    private function ambilInputSasaran(DefaultRequest $request, Service $service) : array {
+        $startDate = $request->input('period.start');
+        $endDate = $request->input('period.end');
+
+        // Mengambil tipe periode (monthly, weekly, yearly), default adalah 'monthly'
+        $periodType = !empty($request->input('period.type')) ? $request->input('period.type') : 'monthly';
+
+        // Mengambil informasi region dari payload
+        $district = $request->input('region.district');
+        $subDistrict = $request->input('region.sub_district');
+        $healthCenter = $request->input('region.health_center');
+
+        if (!empty($subDistrictColumn)) {
+            // Jika health_center tidak ada, ambil sub_districts berdasarkan district dan sub_district dari payload
+            $subDistricts = $service->subDistricts($district, $subDistrict, $healthCenter);
+        } else {
+            $subDistricts = [];
+        }
+
+        // Mengambil gender dari payload (misal 'male', 'female')
+        $gender = $request->input('gender');
+
+        // Mengambil target dari payload (misal 'ibu_hamil', 'anak')
+        $target = $request->input('target');
+
+        // Mengambil jenis agregasi dari payload (absolute, cumulative, dsb)
+        $aggregateType = $request->input('aggregate');
+
+        return [
+            $startDate,
+            $endDate,
+            $periodType, // unused, 'monthly' supprted only
+            $subDistricts,
+            $gender,
+            $target, // unused
+            $aggregateType
+        ];
+    }
+    protected function sasaranHipertensiTerlayani(DefaultRequest $request, Service $service) : Response {
+        list (
+            $startDate,
+            $endDate,
+            $periodType,
+            $subDistricts,
+            $gender,
+            $target,
+            $aggregateType
+        ) = $this->ambilInputSasaran($request, $service);
+    }
+
+    protected function sasaranHipertensiPuskesmasTerlayani(DefaultRequest $request, Service $service) : Response {
+        list (
+            $startDate,
+            $endDate,
+            $periodType,
+            $subDistricts,
+            $gender,
+            $target,
+            $aggregateType
+        ) = $this->ambilInputSasaran($request, $service);
+    }
+
 }
