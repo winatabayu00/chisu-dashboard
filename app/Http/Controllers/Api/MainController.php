@@ -186,28 +186,35 @@ class MainController extends Controller
         
         $results2 = DB::select($query, ['tahun' => intval($validated['tahun'])]);
 
-
         $data = [];
+        $all = [];
         foreach ($results as $item) {
-            $d = [
-                'name' => $item->jenis,
-                'target_total' => $item->total,
-                'target_lakilaki' => $item->lakilaki,
-                'target_perempuan' => $item->perempuan,
-            ];
+            if ($item->jenis == 'PROYEKSI JUMLAH PENDUDUK') {
+                $all = [
+                    'target' => $item->total,
+                    'service' => $item->total,
+                ];
+            }else {
+                $d = [
+                    'name' => $item->jenis,
+                    'target_total' => $item->total,
+                    'target_lakilaki' => $item->lakilaki,
+                    'target_perempuan' => $item->perempuan,
+                ];
 
-            foreach ($results2 as $item2) {
-                if ($item->jenis == $item2->jenis) {
-                    $d['service_total'] = $item2->total;
-                    $d['service_lakilaki'] = $item2->lakilaki;
-                    $d['service_perempuan'] = $item2->perempuan;
+                foreach ($results2 as $item2) {
+                    if ($item->jenis == $item2->jenis) {
+                        $d['service_total'] = $item2->total;
+                        $d['service_lakilaki'] = $item2->lakilaki;
+                        $d['service_perempuan'] = $item2->perempuan;
+                    }
                 }
-            }
 
-            $data[] = $d;
+                $data[] = $d;
+            }
         }
         
-        return $this->response($data);
+        return $this->response([ 'results' => $data, 'total' => $all]);
     }
 
     /**
