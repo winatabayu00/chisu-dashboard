@@ -43,13 +43,39 @@ class MainController extends Controller
             'target' => ['nullable', 'string'],
             'aggregate' => ['nullable', Rule::in(['absolute', 'cumulative', 'percentage'])],
         ]);
-        if (empty($validated['tahun']))
-            $validated['tahun'] = date('Y');
+
+        $startDate = $request->input('period.start');
+        $endDate = $request->input('period.end');
+        $district = $request->input('region.district');
+        $subDistrict = $request->input('region.sub_district');
+        $healthCenter = $request->input('region.health_center');
+
+        if (empty($validated['tahun'])) {
+            $s = $startDate ? date('Y', strtotime($startDate)) : null;
+            $e = $endDate ? date('Y', strtotime($endDate)) : null;
+            if ($s && !$e)
+                $validated['tahun'] = $s;
+            elseif ($e && !$s || $e != $s)
+                $validated['tahun'] = $e;
+            else
+                $validated['tahun'] = date('Y');
+        }
         if (empty($validated['target']))
             $validated['target'] = null;
         if (empty($validated['region_id']) || empty($validated['region_type'])) {
-            $validated['region_id'] = null;
-            $validated['region_type'] = null;
+            if ($district) {
+                $validated['region_id'] = $district;
+                $validated['region_type'] = 'kecamatan';
+            }elseif ($healthCenter) {
+                $validated['region_id'] = $healthCenter;
+                $validated['region_type'] = 'puskesmas';
+            }elseif ($subDistrict) {
+                $validated['region_id'] = $subDistrict;
+                $validated['region_type'] = 'kelurahan';
+            }else {
+                $validated['region_id'] = null;
+                $validated['region_type'] = null;
+            }
         }
         if (empty($validated['aggregate']))
             $validated['aggregate'] = 'absolute';
@@ -68,9 +94,15 @@ class MainController extends Controller
         if (!empty($validated['region_id'])) {
             // $query .= ", " . $validated['region_type'];
             if ($validated['region_type'] == 'kecamatan') {
-
+                $region = collect(SelectOptionController::SUB_DISTRICT)
+                    ->where('kecamatan', '=', $validated['region_id'])->map(function($item) {
+                        return $item['name'];
+                    })->toArray();
             }elseif ($validated['region_type'] == 'puskesmas') {
-
+                $region = collect(SelectOptionController::SUB_DISTRICT)
+                    ->where('puskesmas', '=', $validated['region_id'])->map(function($item) {
+                        return $item['name'];
+                    })->toArray();
             }else {
                 $region = [$validated['region_id']];
             }
@@ -163,7 +195,7 @@ class MainController extends Controller
                         $q .= " AND DATE_PART('year', \"$dateColumn\") = (:tahun - 1)";
                     }
                     if (!empty($region)) {
-                        $subDistrictColumn = 'Kelurahan atau Desa';
+                        $subDistrictColumn = 'Desa/Kel';
                         $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $region) . "')";
                     }
                     $q .= " group by tahun";
@@ -242,6 +274,23 @@ class MainController extends Controller
             'target' => ['nullable', 'string'],
             'aggregate' => ['nullable', Rule::in(['absolute', 'cumulative', 'percentage'])],
         ]);
+
+        $startDate = $request->input('period.start');
+        $endDate = $request->input('period.end');
+        $district = $request->input('region.district');
+        $subDistrict = $request->input('region.sub_district');
+        $healthCenter = $request->input('region.health_center');
+
+        if (empty($validated['tahun'])) {
+            $s = $startDate ? date('Y', strtotime($startDate)) : null;
+            $e = $endDate ? date('Y', strtotime($endDate)) : null;
+            if ($s && !$e)
+                $validated['tahun'] = $s;
+            elseif ($e && !$s || $e != $s)
+                $validated['tahun'] = $e;
+            else
+                $validated['tahun'] = date('Y');
+        }
         if (empty($validated['tahun']))
             $validated['tahun'] = date('Y');
         if (empty($validated['target'])) {
@@ -249,11 +298,41 @@ class MainController extends Controller
             // $validated['target'] = null;
         }
         if (empty($validated['region_id']) || empty($validated['region_type'])) {
-            $validated['region_id'] = null;
-            $validated['region_type'] = null;
+            if ($district) {
+                $validated['region_id'] = $district;
+                $validated['region_type'] = 'kecamatan';
+            }elseif ($healthCenter) {
+                $validated['region_id'] = $healthCenter;
+                $validated['region_type'] = 'puskesmas';
+            }elseif ($subDistrict) {
+                $validated['region_id'] = $subDistrict;
+                $validated['region_type'] = 'kelurahan';
+            }else {
+                $validated['region_id'] = null;
+                $validated['region_type'] = null;
+            }
         }
         if (empty($validated['aggregate']))
-            $validated['aggregate'] = 'absolute';
+        $validated['aggregate'] = 'absolute';
+
+        if (!empty($validated['region_id'])) {
+            // $query .= ", " . $validated['region_type'];
+            if ($validated['region_type'] == 'kecamatan') {
+                $region = collect(SelectOptionController::SUB_DISTRICT)
+                    ->where('kecamatan', '=', $validated['region_id'])->map(function($item) {
+                        return $item['name'];
+                    })->toArray();
+            }elseif ($validated['region_type'] == 'puskesmas') {
+                $region = collect(SelectOptionController::SUB_DISTRICT)
+                    ->where('puskesmas', '=', $validated['region_id'])->map(function($item) {
+                        return $item['name'];
+                    })->toArray();
+            }else {
+                $region = [$validated['region_id']];
+            }
+        }else {
+            $region = [];
+        }
 
         $params = [
             'tahun' => intval($validated['tahun'])
@@ -329,7 +408,7 @@ class MainController extends Controller
                     $q .= " AND DATE_PART('year', \"$dateColumn\") = (:tahun - 1)";
                 }
                 if (!empty($region)) {
-                    $subDistrictColumn = 'Kelurahan atau Desa';
+                    $subDistrictColumn = 'Desa/Kel';
                     $q .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $region) . "')";
                 }
                 $q .= " group by month";
@@ -516,10 +595,10 @@ class MainController extends Controller
         }
 
         // Filtering based on target
-        if (!empty($target)) {
-            $query .= " AND \"target\" = :target";
-            // $params['target'] = $target;
-        }
+        // if (!empty($target)) {
+        //     $query .= " AND \"target\" = :target";
+        //     // $params['target'] = $target;
+        // }
 
         // Finalize query
         if ($periodType == "weekly") {
@@ -562,6 +641,7 @@ class MainController extends Controller
         }
 
         $tableColumn = $service->namaLembaga();
+        $dateColumn = $service->dateColumn();
         $startDate = $request->input('period.start');
         $endDate = $request->input('period.end');
         // $periodType = !empty($request->input('period.type')) ? $request->input('period.type') : 'monthly';
@@ -581,11 +661,11 @@ class MainController extends Controller
         
         // Filtering based on startDate and endDate
         if (!empty($startDate)) {
-            $query .= " AND \"$tableColumn\" >= :start_date";
+            $query .= " AND \"$dateColumn\" >= :start_date";
             $params['start_date'] = $startDate;
         }
         if (!empty($endDate)) {
-            $query .= " AND \"$tableColumn\" <= :end_date";
+            $query .= " AND \"$dateColumn\" <= :end_date";
             $params['end_date'] = $endDate;
         }
 
@@ -725,6 +805,14 @@ class MainController extends Controller
         $data = [];
         if ($response->ok()) {
             $resp = @json_decode($response->body(), true);
+            $data = [];
+            usort($resp['data'], function($a, $b) {
+                $ta = strtotime(Carbon::parse($a['tahun'] . '-' . str_pad($a['bulan'], 2, '0', STR_PAD_LEFT) . '-01'));
+                $tb = strtotime(Carbon::parse($b['tahun'] . '-' . str_pad($b['bulan'], 2, '0', STR_PAD_LEFT) . '-01'));
+                if ($ta == $tb) return 0;
+                return $ta < $tb ? -1 : 1;
+            });
+
             $data = collect($resp['data'])->map(function($item) {
                 return [
                     'count' => $item['jumlah'],
@@ -732,7 +820,6 @@ class MainController extends Controller
                 ];
             })->toArray();
         }
-
 
         return $this->response($data);
     }
