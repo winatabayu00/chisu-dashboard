@@ -72,7 +72,7 @@ class SelectOptionController extends Controller
     {
         $validated = $request->validate([
             'type_id' => ['nullable', 'string'],
-            'type' => ['nullable', 'in:health_center,districts']
+            'type' => ['nullable', 'in:health_center,districts,sub_district']
         ]);
 
         $data = match ($validated['type']) {
@@ -80,6 +80,8 @@ class SelectOptionController extends Controller
                 ->where('puskesmas', '=', $validated['type_id']),
             'districts' => collect(self::SUB_DISTRICT)
                 ->where('kecamatan', '=', $validated['type_id']),
+            'sub_district' => collect(self::SUB_DISTRICT)
+                ->where('level', '=', '4'),
             default => [],
         };
 
