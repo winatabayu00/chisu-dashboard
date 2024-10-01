@@ -190,6 +190,9 @@ class MainController extends Controller
             }
         }
 
+        if (empty($queries))
+            return $this->response([]);
+
         $query = "SELECT * FROM (" . implode("\nUNION\n", $queries) . ") AS T";
         // return $this->response(['query' => $query]);
         
