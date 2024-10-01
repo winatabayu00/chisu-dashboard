@@ -125,7 +125,7 @@ enum Service: string
             self::PEMBERIAN_VITAMIN_A => 'Desa/Kel',
             self::LAYANAN_TUMBUH_KEMBANG => null,
             self::IMUNISASI_LANJUTAN_LENGKAP => 'Kelurahan atau Desa',
-            self::SKRINING_KESEHATAN => 'Puskesmas', // Hanya untuk Puskesmas
+            self::SKRINING_KESEHATAN => 'puskesmas', // Hanya untuk Puskesmas
             self::SKRINING_ANEMIA => 'Nama Desa', //soon
             self::KONSUMSI_TABLET_TABAH_DARAH => null,
         };
@@ -187,12 +187,12 @@ enum Service: string
             self::KUNJUNGAN_NEONATAL_LENGKAP => null,
             self::KUNJUNGAN_NIFAS_LENGKAP => 'Nama Lembaga Kesehatan',
             self::SKRINING_HIPOTIROID_KONGENITAL => 'NAMA FASYANKES',
-            self::ASI_EKSKLUSIF => 'Pukesmas',
+            self::ASI_EKSKLUSIF => 'Puskesmas',
             self::IMUNISASI_DASAR_LENGKAP => null,
             self::IMUNISASI_LANJUTAN_BADUTA_LENGKAP => null,
             self::PEMBERIAN_VITAMIN_A => 'Pukesmas',
             self::LAYANAN_TUMBUH_KEMBANG => null,
-            self::IMUNISASI_LANJUTAN_LENGKAP => 'Pukesmas',
+            self::IMUNISASI_LANJUTAN_LENGKAP => 'Puskesmas',
             self::SKRINING_KESEHATAN => 'puskesmas',
             self::SKRINING_ANEMIA => 'Nama Lembaga', //soon
             self::KONSUMSI_TABLET_TABAH_DARAH => null,

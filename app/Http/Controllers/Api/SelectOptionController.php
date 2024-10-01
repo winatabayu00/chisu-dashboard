@@ -166,13 +166,15 @@ class SelectOptionController extends Controller
         ]);
 
         $serviceTargets = !empty($validated['target']) ? Target::tryFrom($validated['target'])->serviceLists() : [];
-        $data = collect($serviceTargets)->map(function (Service $item) {
+        $data = collect($serviceTargets)->filter(function(Service $item) {
+            return !empty($item->tableMaps());
+        })->map(function (Service $item) {
             return [
                 'id' => $item->value,
                 'name' => $item->label(),
             ];
-        });
+        })->toArray();
 
-        return $this->response($data);
+        return $this->response(array_values($data));
     }
 }

@@ -478,7 +478,7 @@ class MainController extends Controller
         // Mengambil indicator dari payload, jika tidak ada default ke 'KUNJUNGAN_ANC_6'
         $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::PASIEN_HIPERTENSI;
         if (!$service instanceof Service) {
-            return $this->response();
+            return $this->response([]);
         }
 
         // Mapping nama tabel berdasarkan indicator (target)
@@ -494,6 +494,9 @@ class MainController extends Controller
 
         // Kolom tanggal berdasarkan indicator (target)
         $tableColumn = $service->dateColumn();
+        if (empty($tableName) || empty($tableColumn)) {
+            return $this->response([]);
+        }
 
         // Mengambil periode start dan end dari payload
         $startDate = $request->input('period.start');
@@ -508,7 +511,7 @@ class MainController extends Controller
         $healthCenter = $request->input('region.health_center');
 
         // Jika health_center ada, maka hanya query pada puskesmas/health_center tersebut
-        if (in_array($subDistrictColumn, ['Puskesmas', 'NAMA FASYANKES'])) {
+        if (in_array($subDistrictColumn, ['puskesmas', 'NAMA FASYANKES'])) {
             if (!empty($healthCenter)) {
                 $subDistricts = [$healthCenter];
             } else {
@@ -631,7 +634,7 @@ class MainController extends Controller
     {
         $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::PASIEN_HIPERTENSI;
         if (!$service instanceof Service){
-            return $this->response();
+            return $this->response([]);
         }
         $tableName = $service->tableMaps();
 
@@ -641,6 +644,9 @@ class MainController extends Controller
         }
 
         $tableColumn = $service->namaLembaga();
+        if (empty($tableName) || empty($tableColumn)) {
+            return $this->response([]);
+        }
         $dateColumn = $service->dateColumn();
         $startDate = $request->input('period.start');
         $endDate = $request->input('period.end');
@@ -660,11 +666,11 @@ class MainController extends Controller
                 \"$tableColumn\" is not null";
         
         // Filtering based on startDate and endDate
-        if (!empty($startDate)) {
+        if (!empty($startDate) && !empty($dateColumn)) {
             $query .= " AND \"$dateColumn\" >= :start_date";
             $params['start_date'] = $startDate;
         }
-        if (!empty($endDate)) {
+        if (!empty($endDate) && !empty($dateColumn)) {
             $query .= " AND \"$dateColumn\" <= :end_date";
             $params['end_date'] = $endDate;
         }
