@@ -71,21 +71,27 @@ class SelectOptionController extends Controller
     public function getSubDistricts(Request $request): Response
     {
         $validated = $request->validate([
-            'type_id' => ['nullable', 'string'],
-            'type' => ['nullable', 'in:health_center,districts,sub_district']
+            'type_id' => ['required', 'string'],
+            'type' => ['required', 'in:health_center,district']
         ]);
 
         $data = match ($validated['type']) {
             'health_center' => collect(self::SUB_DISTRICT)
-                ->where('puskesmas', '=', $validated['type_id']),
-            'districts' => collect(self::SUB_DISTRICT)
-                ->where('kecamatan', '=', $validated['type_id']),
-            'sub_district' => collect(self::SUB_DISTRICT)
-                ->where('level', '=', '4'),
+                ->where('puskesmas', '=', $validated['type_id'])->toArray(),
+            'district' => collect(self::SUB_DISTRICT)
+                ->where('kecamatan', '=', $validated['type_id'])->toArray(),
             default => [],
         };
 
-        return $this->response($data);
+        $subDistricts = [];
+        foreach ($data as $item){
+            $subDistricts[] = [
+                'id' => $item['id'],
+                'name' => $item['name'],
+            ];
+        }
+
+        return $this->response($subDistricts);
     }
 
     /**
