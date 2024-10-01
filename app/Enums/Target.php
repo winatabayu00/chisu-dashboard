@@ -13,7 +13,7 @@ enum Target: string
     case IBU_BERSALIN = 'ibu_bersalin';
     case BAYI_BARU_LAHIR = 'bayi_baru_lahir';
     case BAYI_DIBAWAH_6_BULAN = 'bayi_dibawah_6_bulan';
-    case BAYI = 'bayi';
+    case BAYI = 'bayi'; // 0-11 bulan
     case ANAK_USIA_12_SAMPAI_23_BULAN = 'anak_usia_12_sampai_23_bulan';
     case BALITA = 'balita';
     case ANAK_USIA_SEKOLAH = 'anak_usia_sekolah';
@@ -30,7 +30,7 @@ enum Target: string
             self::ANAK_USIA_12_SAMPAI_23_BULAN => 1000,
             self::BALITA => 1000,
             self::ANAK_USIA_SEKOLAH => 1000,
-            self::REMAJA_PUTRI => 1000,
+            self::REMAJA_PUTRI => 9991,
 
         };
     }

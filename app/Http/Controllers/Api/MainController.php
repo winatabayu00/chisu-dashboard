@@ -251,8 +251,9 @@ class MainController extends Controller
             'tahun' => intval($validated['tahun'])
         ];
 
-        switch ($validated['target']) {
-            case 'IBU HAMIL':
+        $target = Target::tryFrom($validated['target']) ?? Target::REMAJA_PUTRI;
+        switch ($target) {
+            case Target::IBU_HAMIL:
                 $service = Service::KUNJUNGAN_ANC_6;
                 $tableName = $service->tableMaps();
                 $dateColumn = $service->dateColumn();
@@ -266,7 +267,7 @@ class MainController extends Controller
                 }
                 $q .= " group by month";
                 break;
-            case 'IBU BERSALIN':
+            case Target::IBU_BERSALIN:
                 $service = Service::PERSALINAN_DI_FASILITAS_KESEHATAN;
                 $tableName = $service->tableMaps();
                 $dateColumn = $service->dateColumn();
@@ -280,10 +281,10 @@ class MainController extends Controller
                 }
                 $q .= " group by month";
                 break;
-            case 'BAYI BARU LAHIR':
+            case Target::BAYI_BARU_LAHIR:
                 # code...
                 break;
-            case 'BAYI 0-11 BULAN':
+            case Target::BAYI:
                 $service = Service::IMUNISASI_DASAR_LENGKAP;
                 $tableName = $service->tableMaps();
                 $dateColumn = $service->dateColumn();
@@ -297,7 +298,7 @@ class MainController extends Controller
                 }
                 $q .= " group by month";
                 break;
-            case 'BAYI 12-23 BULAN':
+            case Target::ANAK_USIA_12_SAMPAI_23_BULAN:
                 // $service = Service::IMUNISASI_DASAR_LENGKAP;
                 $tableName = 'baduta';
                 $dateColumn = 'Tanggal Imunisasi DPT-Hb-Hib 4';
@@ -311,7 +312,7 @@ class MainController extends Controller
                 }
                 $q .= " group by month";
                 break;
-            case 'BALITA':
+            case Target::BALITA:
                 // $service = Service::IMUNISASI_DASAR_LENGKAP;
                 $tableName = 'eppbgm';
                 $dateColumn = 'Tanggal Pengukuran';
@@ -325,7 +326,7 @@ class MainController extends Controller
                 }
                 $q .= " group by month";
                 break;
-            case 'USIA PENDIDIKAN DASAR':
+            case Target::ANAK_USIA_SEKOLAH:
                 $service = Service::SKRINING_KESEHATAN;
                 $tableName = $service->tableMaps();
                 $dateColumn = $service->dateColumn();
@@ -339,12 +340,15 @@ class MainController extends Controller
                 }
                 $q .= " group by month";
                 break;
-            case 'USIA PRODUKTIF':
+            case Target::REMAJA_PUTRI:
                 # code...
                 break;
         }
 
-        $results = DB::select($q, ['tahun' => intval($validated['tahun'])]);
+        if (isset($q))
+            $results = DB::select($q, ['tahun' => intval($validated['tahun'])]);
+        else
+            $results = [];
 
         $data = collect($results)->map(function ($item) {
             return [
@@ -384,15 +388,13 @@ class MainController extends Controller
      */
     public function sasaranTerlayani(DefaultRequest $request): \Winata\Core\Response\Http\Response
     {
-// Payload processing
-
-// Mengambil indicator dari payload, jika tidak ada default ke 'KUNJUNGAN_ANC_6'
+        // Mengambil indicator dari payload, jika tidak ada default ke 'KUNJUNGAN_ANC_6'
         $service = !empty($request->input('indicator')) ? Service::tryFrom($request->input('indicator')) : Service::PASIEN_HIPERTENSI;
         if (!$service instanceof Service) {
             return $this->response();
         }
 
-// Mapping nama tabel berdasarkan indicator (target)
+        // Mapping nama tabel berdasarkan indicator (target)
         $tableName = $service->tableMaps();
 
         if (strpos($tableName, 'function:') === 0) {
@@ -400,25 +402,25 @@ class MainController extends Controller
             return $this->$func($request, $service);
         }
 
-// Kolom sub_district berdasarkan indicator (target)
+        // Kolom sub_district berdasarkan indicator (target)
         $subDistrictColumn = $service->subDistrictColumn();
 
-// Kolom tanggal berdasarkan indicator (target)
+        // Kolom tanggal berdasarkan indicator (target)
         $tableColumn = $service->dateColumn();
 
-// Mengambil periode start dan end dari payload
+        // Mengambil periode start dan end dari payload
         $startDate = $request->input('period.start');
         $endDate = $request->input('period.end');
 
-// Mengambil tipe periode (monthly, weekly, yearly), default adalah 'monthly'
+        // Mengambil tipe periode (monthly, weekly, yearly), default adalah 'monthly'
         $periodType = !empty($request->input('period.type')) ? $request->input('period.type') : 'monthly';
 
-// Mengambil informasi region dari payload
+        // Mengambil informasi region dari payload
         $district = $request->input('region.district');
         $subDistrict = $request->input('region.sub_district');
         $healthCenter = $request->input('region.health_center');
 
-// Jika health_center ada, maka hanya query pada puskesmas/health_center tersebut
+        // Jika health_center ada, maka hanya query pada puskesmas/health_center tersebut
         if (in_array($subDistrictColumn, ['Puskesmas', 'NAMA FASYANKES'])) {
             if (!empty($healthCenter)) {
                 $subDistricts = [$healthCenter];
@@ -432,30 +434,30 @@ class MainController extends Controller
             $subDistricts = [];
         }
 
-// Mengambil gender dari payload (misal 'male', 'female')
+        // Mengambil gender dari payload (misal 'male', 'female')
         $gender = $request->input('gender');
 
-// Mengambil target dari payload (misal 'ibu_hamil', 'anak')
+        // Mengambil target dari payload (misal 'ibu_hamil', 'anak')
         $target = $request->input('target');
 
-// Mengambil jenis agregasi dari payload (absolute, cumulative, dsb)
+        // Mengambil jenis agregasi dari payload (absolute, cumulative, dsb)
         $aggregateType = $request->input('aggregate');
 
-// Mendapatkan tipe kolom (date atau character varying) dari tabel
+        // Mendapatkan tipe kolom (date atau character varying) dari tabel
         $columnType = DB::selectOne("
     SELECT data_type
     FROM information_schema.columns
     WHERE table_name = :table_name AND column_name = :column_name
 ", [
-            'table_name' => $tableName,
-            'column_name' => $tableColumn
-        ])->data_type;
+        'table_name' => $tableName,
+        'column_name' => $tableColumn
+    ])->data_type;
 
-// Query preparation
+
+        // Query preparation
         $query = "
     SELECT
-        COUNT(\"$tableColumn\") AS count_anc,
-";
+        COUNT(\"$tableColumn\") AS count_anc,";
 
         if ($periodType == 'weekly') {
             // Handle weekly aggregation
@@ -479,15 +481,18 @@ class MainController extends Controller
     WHERE 1=1
 ";
 
-// Filtering based on startDate and endDate
-        if (!is_null($startDate)) {
+        $params = [];
+        // Filtering based on startDate and endDate
+        if (!empty($startDate)) {
             $query .= " AND \"$tableColumn\" >= :start_date";
+            $params['start_date'] = $startDate;
         }
-        if (!is_null($endDate)) {
+        if (!empty($endDate)) {
             $query .= " AND \"$tableColumn\" <= :end_date";
+            $params['end_date'] = $endDate;
         }
 
-// Filtering based on subDistricts
+        // Filtering based on subDistricts
         if ($subDistrictColumn) {
             if (!empty($subDistricts)) {
                 $query .= " AND \"$subDistrictColumn\" IN('" . implode("', '", $subDistricts) . "')";
@@ -496,17 +501,19 @@ class MainController extends Controller
             }
         }
 
-// Filtering based on gender
-//        if (!empty($gender)) {
-//            $query .= " AND \"gender\" = :gender";
-//        }
+        // Filtering based on gender
+        if (!empty($gender)) {
+            $query .= " AND \"gender\" = :gender";
+            // $params['gender'] = $gender;
+        }
 
-// Filtering based on target
-//        if (!empty($target)) {
-//            $query .= " AND \"target\" = :target";
-//        }
+        // Filtering based on target
+        if (!empty($target)) {
+            $query .= " AND \"target\" = :target";
+            // $params['target'] = $target;
+        }
 
-// Finalize query
+        // Finalize query
         if ($periodType == "weekly") {
             $query .= " GROUP BY week ORDER BY week ASC";
         } elseif ($periodType == "yearly") {
@@ -515,15 +522,7 @@ class MainController extends Controller
             $query .= " GROUP BY month ORDER BY month ASC";
         }
 
-// Preparing parameters for query
-        $params = [
-            'start_date' => $startDate,
-            'end_date' => $endDate,
-//            'gender' => $gender,
-//            'target' => $target,
-        ];
-
-// Execute query
+        // Execute query
         $results = DB::select($query, $params);
 
         $data = collect($results)->map(function ($item) {
@@ -557,23 +556,37 @@ class MainController extends Controller
         $tableColumn = $service->namaLembaga();
         $startDate = $request->input('period.start');
         $endDate = $request->input('period.end');
-        $periodType = !empty($request->input('period.type')) ? $request->input('period.type') : 'monthly';
+        // $periodType = !empty($request->input('period.type')) ? $request->input('period.type') : 'monthly';
         $aggregateType = $request->input('aggregate');
+        if ($aggregateType == 'cumulative')
+            $aggregateType = null;
 
+        $params = [];
+        $query = "
+            SELECT
+                \"$tableColumn\" as name,
+                COUNT(\"$tableColumn\") AS total
+            FROM
+                \"$tableName\"
+            WHERE
+                \"$tableColumn\" is not null";
+        
+        // Filtering based on startDate and endDate
+        if (!empty($startDate)) {
+            $query .= " AND \"$tableColumn\" >= :start_date";
+            $params['start_date'] = $startDate;
+        }
+        if (!empty($endDate)) {
+            $query .= " AND \"$tableColumn\" <= :end_date";
+            $params['end_date'] = $endDate;
+        }
 
-        $results = DB::select("
-    SELECT
-        \"$tableColumn\" as name,
-        COUNT(\"$tableColumn\") AS total
-    FROM
-        \"$tableName\"
-    WHERE
-        \"$tableColumn\" is not null
-    GROUP BY
-        \"$tableColumn\"
-    ORDER BY
-        \"$tableColumn\" ASC
-");
+        $query .= " GROUP BY
+                    \"$tableColumn\"
+                ORDER BY
+                    \"$tableColumn\" ASC
+            ";
+        $results = DB::select($query, $params);
         $data = collect($results)->map(function ($item) {
             return [
                 'count' => $item->total,
