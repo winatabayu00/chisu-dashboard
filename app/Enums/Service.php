@@ -102,7 +102,6 @@ enum Service: string
             self::SKRINING_KESEHATAN => null, // Hanya untuk Puskesmas
             self::SKRINING_ANEMIA => 'Nama Kecamatan', //soon
             self::KONSUMSI_TABLET_TABAH_DARAH => null,
-
         };
     }
 
@@ -123,7 +122,6 @@ enum Service: string
             self::SKRINING_KESEHATAN => 'Puskesmas', // Hanya untuk Puskesmas
             self::SKRINING_ANEMIA => 'Nama Desa', //soon
             self::KONSUMSI_TABLET_TABAH_DARAH => null,
-
         };
     }
 
@@ -144,7 +142,6 @@ enum Service: string
             self::SKRINING_KESEHATAN => 'jk', // Hanya untuk Puskesmas
             self::SKRINING_ANEMIA => null, //soon
             self::KONSUMSI_TABLET_TABAH_DARAH => null,
-
         };
     }
 
@@ -170,7 +167,6 @@ enum Service: string
             self::SKRINING_KESEHATAN => 'tgl_pendataan',
             self::SKRINING_ANEMIA => null, //soon
             self::KONSUMSI_TABLET_TABAH_DARAH => null,
-
         };
     }
 
@@ -194,7 +190,6 @@ enum Service: string
             self::SKRINING_KESEHATAN => 'puskesmas',
             self::SKRINING_ANEMIA => 'Nama Lembaga', //soon
             self::KONSUMSI_TABLET_TABAH_DARAH => null,
-
         };
     }
 
