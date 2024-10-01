@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+use App\Http\Controllers\Api\SelectOptionController;
 use ArchTech\Enums\Options;
 use Illuminate\Support\Str;
 
@@ -71,15 +72,18 @@ enum Service: string
     public function subDistricts($district = null, $subdistrict = null, $puskesmas = null) : array
     {
         if (!empty($puskesmas)) {
-            // TODO: daftar desa/kelurahan per puskesmas petakan dari array constant
-            return [];
+            // daftar desa/kelurahan per puskesmas petakan dari array constant
+            return collect(SelectOptionController::SUB_DISTRICT)
+                ->where('puskesmas', '=', $puskesmas)->toArray();
         }
         // jika kelurahan maka kembalikan saja array dengan 1 element
         elseif (!empty($district)) {
             if (!empty($subdistrict)) {
                 return [$subdistrict];
             }else {
-                // TODO: daftar desa/kelurahan per kecamatan petakan dari array constant
+                // daftar desa/kelurahan per kecamatan petakan dari array constant
+                return collect(SelectOptionController::SUB_DISTRICT)
+                    ->where('kecamatan', '=', $district)->toArray();
                 return [];
             }
         }
